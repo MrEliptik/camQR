@@ -53,10 +53,10 @@ class CodesAdapter(private val context: Context,
 
         val image = item.get("Image") as Bitmap?
 
-        imageThumbnail.setImageBitmap(image)
+        if (image != null) imageThumbnail.setImageBitmap(image)
         typeTextView.text = item.get("Type").toString()
         valueTextView.text = item.get("Value").toString()
-        colorBarView.setBackgroundColor(item.get("Color") as Int)
+        //colorBarView.setBackgroundColor(item.get("Color") as Int)
 
         copyBtn.setOnClickListener {
             // Get the clipboard system service
@@ -64,12 +64,12 @@ class CodesAdapter(private val context: Context,
             val clip = ClipData.newPlainText("Code", valueTextView.text)
             clipboard.setPrimaryClip(clip)
 
-            /*
-            val imgResource: Int = R.drawable.clipboard_done_24
-            clipboard_btn.setCompoundDrawablesWithIntrinsicBounds(0, imgResource, 0, 0)
-            clipboard_btn.text = resources.getString(R.string.copied)
-            clipboard_btn.invalidate()
-             */
+
+            val imgResource: Int = R.drawable.copy_done_24
+            copyBtn.setCompoundDrawablesWithIntrinsicBounds(0, imgResource, 0, 0)
+            copyBtn.text = "Copied!"
+            copyBtn.invalidate()
+
 
             Snackbar.make(rowView, "Copied to clipboard!", Snackbar.LENGTH_SHORT).show()
         }
