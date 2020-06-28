@@ -60,7 +60,7 @@ public class DrawView extends View {
             int i = 0;
 
             for (RectF r: rectanglesList) {
-                mRectPaint.setColor(Color.parseColor(String.format("#%06X", (0xFFFFFF & colorsList.get(i)))));
+                //mRectPaint.setColor(Color.parseColor(String.format("#%06X", (0xFFFFFF & colorsList.get(i)))));
                 canvas.drawRect(r, mRectPaint);
                 i++;
             }
@@ -71,6 +71,7 @@ public class DrawView extends View {
     public void clearRectangles() {
         rectanglesList.clear();
         colorsList.clear();
+        invalidate();
     }
 
     public void setRectangles(RectF r, int c) {
