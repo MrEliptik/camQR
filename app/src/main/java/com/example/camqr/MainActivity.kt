@@ -3,19 +3,26 @@ package com.example.camqr
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.Rect
+import android.graphics.RectF
 import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.util.Size
 import android.view.View
+import android.widget.ImageButton
 import android.widget.ListView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
-import androidx.camera.core.Camera
 import androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -30,7 +37,6 @@ import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.random.Random
@@ -49,7 +55,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
 
-    private var barcodesList: ArrayList<String> = ArrayList()
+    private lateinit var analyser: QRAnalyser
+
+    enum class FLASH_MODE {
+        ON,
+        OFF
+    }
+    private var flashState = FLASH_MODE.OFF
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -93,6 +105,58 @@ class MainActivity : AppCompatActivity() {
 
         adapter = CodesAdapter(this, listCodes)
         codes_list_view.adapter = adapter
+
+        clear_btn.setOnClickListener {
+            analyser.clearList()
+        }
+
+        exit_btn.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to exit?")
+                .setCancelable(false)
+                .setPositiveButton("Yes") { dialog, id ->
+                    val homeIntent = Intent(Intent.ACTION_MAIN)
+                    homeIntent.addCategory(Intent.CATEGORY_HOME)
+                    homeIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    startActivity(homeIntent)
+                }
+                .setNegativeButton("No", null)
+                .show()
+        }
+
+        flash_btn.setOnClickListener {
+            if (flashState == FLASH_MODE.OFF) {
+                flashState = FLASH_MODE.ON
+                flash_btn.setImageResource(R.drawable.flash_on_24)
+                flash_btn.invalidate()
+                if (camera!!.cameraInfo.hasFlashUnit()) {
+                    camera!!.cameraControl.enableTorch(true)
+                }
+            }
+            else if(flashState == FLASH_MODE.ON){
+                flashState = FLASH_MODE.OFF
+                flash_btn.setImageResource(R.drawable.flash_off_24)
+                flash_btn.invalidate()
+                if (camera!!.cameraInfo.hasFlashUnit()) {
+                    camera!!.cameraControl.enableTorch(false)
+                }
+            }
+        }
+
+    }
+
+    override fun onBackPressed() {
+        AlertDialog.Builder(this)
+            .setMessage("Are you sure you want to exit?")
+            .setCancelable(false)
+            .setPositiveButton("Yes") { dialog, id ->
+                val homeIntent = Intent(Intent.ACTION_MAIN)
+                homeIntent.addCategory(Intent.CATEGORY_HOME)
+                homeIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                startActivity(homeIntent)
+            }
+            .setNegativeButton("No", null)
+            .show()
     }
 
     override fun onRequestPermissionsResult(
@@ -129,6 +193,8 @@ class MainActivity : AppCompatActivity() {
                 .setTargetRotation(viewFinder.display.rotation)
                 .build()
 
+            analyser = QRAnalyser(this, viewFinder, drawArea, codes_list_view, adapter, listCodes, scanner)
+
             // Image analysis
             imageAnalyzer = ImageAnalysis.Builder()
                 .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
@@ -137,7 +203,7 @@ class MainActivity : AppCompatActivity() {
                 .setTargetRotation(viewFinder.display.rotation)
                 .build()
                 .also {
-                    it.setAnalyzer(cameraExecutor, QRAnalyser(this, viewFinder, drawArea, codes_list_view, adapter, listCodes, scanner))
+                    it.setAnalyzer(cameraExecutor, analyser)
                 }
 
             // Select back camera
@@ -173,6 +239,8 @@ class MainActivity : AppCompatActivity() {
                              private var listCodes: JSONArray, private val scanner: BarcodeScanner)
         : ImageAnalysis.Analyzer {
 
+        private var barcodesList: ArrayList<Int> = ArrayList()
+
         @SuppressLint("UnsafeExperimentalUsageError")
         override fun analyze(imageProxy: ImageProxy) {
             val mediaImage: Image? = imageProxy.image
@@ -181,18 +249,21 @@ class MainActivity : AppCompatActivity() {
                 // Pass image to an ML Kit Vision API
                 val result = scanner.process(image)
                         .addOnSuccessListener { barcodes ->
+                            val textView: TextView = (c as Activity).findViewById<View>(R.id.helper) as TextView
 
                             // Clear previous rectangles and codes
                             drawArea.clearRectangles()
-                            listCodes = JSONArray()
+                            //listCodes = JSONArray()
+
+                            if (barcodes.size > 0) {
+                                textView.visibility = View.INVISIBLE
+                            }
+                            else {
+                                textView.visibility = View.VISIBLE
+                            }
 
                             // Task completed successfully
                             for (barcode in barcodes) {
-
-                                val bounds = barcode.boundingBox
-                                val corners = barcode.cornerPoints
-
-                                val rawValue = barcode.rawValue
 
                                 val color = Color.argb(
                                     255,
@@ -201,18 +272,38 @@ class MainActivity : AppCompatActivity() {
                                     Random.nextInt(256)
                                 )
 
-                                if (bounds != null) {
-                                    val scaledRect = scaleRect(bounds, image)
-                                    drawArea.setRectangles(scaledRect, color)
+                                val bounds = barcode.boundingBox
+
+                                val rawValue = barcode.rawValue
+
+                                val hash = (decodeFormat(barcode.format) + rawValue).hashCode()
+                                if (hash !in barcodesList) {
+                                    val entry = JSONObject()
+                                    entry.put("Type", decodeFormat(barcode.format))
+                                    entry.put("Value", barcode.rawValue)
+                                    entry.put("Color", color)
+
+                                    val scaledRect = scaleRect(bounds!!, image)
+                                    val croppedBmp: Bitmap = Bitmap.createBitmap(
+                                        viewFinder.bitmap!!,
+                                        scaledRect!!.left.toInt(),
+                                        scaledRect!!.top.toInt(),
+                                        scaledRect!!.width().toInt(),
+                                        scaledRect!!.height().toInt()
+                                    )
+
+                                    entry.put("Image", croppedBmp)
+                                    listCodes.put(entry)
+                                    barcodesList.add(hash)
+                                    adapter.notifyDataSetChanged()
+                                    val imageButton: ImageButton = (c as Activity).findViewById<View>(R.id.clear_btn) as ImageButton
+                                    imageButton.visibility = View.VISIBLE
                                 }
 
-                                val entry = JSONObject()
-                                entry.put("Type", decodeFormat(barcode.format))
-                                entry.put("Value", barcode.rawValue)
-                                entry.put("Color", color)
-
-                                entry.put("Image", viewFinder.bitmap)
-                                listCodes.put(entry)
+                                if (bounds != null) {
+                                    val scaledRect = scaleRect(bounds, image, offset = true)
+                                    drawArea.setRectangles(scaledRect, color)
+                                }
 
                                 // See API reference for complete list of supported types
                                 when (barcode.valueType) {
@@ -229,28 +320,19 @@ class MainActivity : AppCompatActivity() {
                                 }
                             }
 
-                            adapter = CodesAdapter(c, listCodes)
-                            codes_list_view.adapter = adapter
-
-                            adapter.notifyDataSetChanged()
-
                             imageProxy.close()
                         }
                         .addOnFailureListener {
                             // Task failed with an exception
                             Log.d("CODE", it.toString())
+                            val textView: TextView = (c as Activity).findViewById<View>(R.id.helper) as TextView
+                            textView.visibility = View.VISIBLE
+                            val imageButton: ImageButton = (c as Activity).findViewById<View>(R.id.clear_btn) as ImageButton
+                            imageButton.visibility = View.INVISIBLE
                             imageProxy.close()
                         }
                 //
             }
-        }
-
-        private fun imageProxyToBitmap(image: ImageProxy): Bitmap {
-            val buffer: ByteBuffer = image.planes[0].buffer
-            buffer.rewind()
-            val bytes = ByteArray(buffer.remaining())
-            buffer.get(bytes)
-            return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
         }
 
         private fun decodeFormat(format: Int): String? {
@@ -272,19 +354,42 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        private fun scaleRect(rect: Rect, image: InputImage): RectF {
-            val w = drawArea.width
-            val h = drawArea.height
+        private fun scaleRect(rect: Rect, image: InputImage, offset: Boolean = false): RectF {
             val wFactor = drawArea.width.toFloat()/image.height
             val hFactor = drawArea.height.toFloat()/image.width
 
             val scaledRect = RectF(rect)
-            scaledRect.left = (rect.left * wFactor).toFloat()
-            scaledRect.top = (rect.top * hFactor).toFloat()
-            scaledRect.right = (rect.right * wFactor).toFloat()
-            scaledRect.bottom = (rect.bottom * hFactor).toFloat()
+            if(offset){
+                scaledRect.left = (rect.left * wFactor) - OFFSET
+                scaledRect.top = (rect.top * hFactor) - OFFSET
+                scaledRect.right = (rect.right * wFactor) + OFFSET
+                scaledRect.bottom = (rect.bottom * hFactor) + OFFSET
+            }
+            else {
+                scaledRect.left = (rect.left * wFactor)
+                scaledRect.top = (rect.top * hFactor)
+                scaledRect.right = (rect.right * wFactor)
+                scaledRect.bottom = (rect.bottom * hFactor)
+            }
+
 
             return scaledRect
+        }
+
+        fun clearList() {
+            listCodes = JSONArray()
+            adapter = CodesAdapter(c, listCodes)
+            codes_list_view.adapter = adapter
+            adapter.notifyDataSetChanged()
+
+            barcodesList.clear()
+
+            val imageButton: ImageButton = (c as Activity).findViewById<View>(R.id.clear_btn) as ImageButton
+            imageButton.visibility = View.INVISIBLE
+        }
+
+        companion object {
+            private const val OFFSET = 20
         }
     }
 }
