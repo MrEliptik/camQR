@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -16,6 +15,8 @@ import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.util.Size
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ListView
@@ -28,6 +29,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
@@ -42,7 +44,7 @@ import java.util.concurrent.Executors
 import kotlin.random.Random
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
 
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
@@ -141,6 +143,12 @@ class MainActivity : AppCompatActivity() {
                     camera!!.cameraControl.enableTorch(false)
                 }
             }
+        }
+
+        val detector = GestureDetector(this, this)
+        codes_list_view.setOnTouchListener { view, e ->
+            detector.onTouchEvent(e)
+            false
         }
 
     }
@@ -388,9 +396,62 @@ class MainActivity : AppCompatActivity() {
             imageButton.visibility = View.INVISIBLE
         }
 
+        fun clearElement(pos: Int) {
+            listCodes.remove(pos)
+            // Use removeAt instead of remove, as remove can be used with an object
+            // and an Int is an object compared to primitive type int
+            barcodesList.removeAt(pos)
+            adapter.notifyDataSetChanged()
+            if (barcodesList.size == 0) {
+                val textView: TextView = (c as Activity).findViewById<View>(R.id.helper) as TextView
+                textView.visibility = View.VISIBLE
+                val imageButton: ImageButton = (c as Activity).findViewById<View>(R.id.clear_btn) as ImageButton
+                imageButton.visibility = View.INVISIBLE
+            }
+        }
+
         companion object {
             private const val OFFSET = 20
         }
+    }
+
+    override fun onShowPress(p0: MotionEvent?) {
+        //Toast.makeText(this, "onShowPress", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onSingleTapUp(p0: MotionEvent?): Boolean {
+        //Toast.makeText(this, "onSingleTapUp", Toast.LENGTH_SHORT).show()
+        return false;
+    }
+
+    override fun onDown(p0: MotionEvent?): Boolean {
+        //Toast.makeText(this, "onDown", Toast.LENGTH_SHORT).show()
+        return false
+    }
+
+    override fun onFling(p0: MotionEvent?, p1: MotionEvent?, p2: Float, p3: Float): Boolean {
+        try {
+            val idx = codes_list_view.pointToPosition(Math.round(p0!!.x), Math.round(p1!!.y))
+            analyser.clearElement(idx)
+            Snackbar
+                .make(mainLayout, "Item deleted", Snackbar.LENGTH_LONG)
+                .setAction("Undo", View.OnClickListener {
+                    Snackbar.make(mainLayout, "Action undone", Snackbar.LENGTH_SHORT).show()
+                }).show()
+            // return super.onFling();
+        } catch (e: java.lang.Exception) {
+            // do nothing
+        }
+        return false
+    }
+
+    override fun onScroll(p0: MotionEvent?, p1: MotionEvent?, p2: Float, p3: Float): Boolean {
+        //Toast.makeText(this, "onScroll", Toast.LENGTH_SHORT).show()
+        return false
+    }
+
+    override fun onLongPress(p0: MotionEvent?) {
+        //Toast.makeText(this, "onLongPress", Toast.LENGTH_SHORT).show()
     }
 }
 
