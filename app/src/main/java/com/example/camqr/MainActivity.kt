@@ -287,9 +287,91 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                                 val hash = (decodeFormat(barcode.format) + rawValue).hashCode()
                                 if (hash !in barcodesList) {
                                     val entry = JSONObject()
-                                    entry.put("Type", decodeFormat(barcode.format))
+                                    entry.put("Type", barcode.format)
+                                    entry.put("QRType", barcode.valueType)
                                     entry.put("Value", barcode.rawValue)
                                     entry.put("Color", color)
+
+                                    // See API reference for complete list of supported types
+                                    when (barcode.valueType) {
+                                        Barcode.TYPE_WIFI -> {
+                                            val ssid = barcode.wifi!!.ssid
+                                            val password = barcode.wifi!!.password
+                                            val type = barcode.wifi!!.encryptionType
+                                            entry.put("SSID", ssid)
+                                            entry.put("Password", password)
+                                            entry.put("Encryption", type)
+                                        }
+                                        Barcode.TYPE_URL -> {
+                                            val title = barcode.url!!.title
+                                            val url = barcode.url!!.url
+                                            entry.put("Title", title)
+                                            entry.put("Url", url)
+                                        }
+                                        Barcode.TYPE_CONTACT_INFO -> {
+                                            val addr = barcode.contactInfo!!.addresses
+                                            val emails = barcode.contactInfo!!.emails
+                                            val name = barcode.contactInfo!!.name
+                                            val org = barcode.contactInfo!!.organization
+                                            val phones = barcode.contactInfo!!.phones
+                                            val title = barcode.contactInfo!!.title
+                                            val urls = barcode.contactInfo!!.urls
+                                            entry.put("Address", addr)
+                                            entry.put("Emails", emails)
+                                            entry.put("Name", name)
+                                            entry.put("Organisation", org)
+                                            entry.put("Phones", phones)
+                                            entry.put("Title", title)
+                                            entry.put("Urls", urls)
+                                        }
+                                        Barcode.TYPE_CALENDAR_EVENT -> {
+                                            val desc = barcode.calendarEvent!!.description
+                                            val start = barcode.calendarEvent!!.start
+                                            val end = barcode.calendarEvent!!.end
+                                            val loc = barcode.calendarEvent!!.location
+                                            val org = barcode.calendarEvent!!.organizer
+                                            val stat = barcode.calendarEvent!!.status
+                                            val sum = barcode.calendarEvent!!.summary
+                                            entry.put("Description", desc)
+                                            entry.put("Start", start)
+                                            entry.put("End", end)
+                                            entry.put("Location", loc)
+                                            entry.put("Organizer", org)
+                                            entry.put("Status", stat)
+                                            entry.put("Summary", sum)
+                                        }
+                                        Barcode.TYPE_EMAIL -> {
+                                            val addr = barcode.email!!.address
+                                            val body = barcode.email!!.body
+                                            val sub = barcode.email!!.subject
+                                            val type = barcode.email!!.type // HOME, UNKNOWN, WORK
+                                            entry.put("Address", addr)
+                                            entry.put("Body", body)
+                                            entry.put("Subject", sub)
+                                            entry.put("Type", type)
+                                        }
+                                        Barcode.TYPE_GEO -> {
+                                            val lat = barcode.geoPoint!!.lat
+                                            val lng = barcode.geoPoint!!.lng
+                                            entry.put("Latitude", lat)
+                                            entry.put("Longitude", lng)
+                                        }
+                                        Barcode.TYPE_PHONE -> {
+                                            val num = barcode.phone!!.number
+                                            val type = barcode.phone!!.type
+                                            entry.put("Number", num)
+                                            entry.put("Type", type)
+                                        }
+                                        Barcode.TYPE_SMS -> {
+                                            val msg = barcode.sms!!.message
+                                            val num = barcode.sms!!.phoneNumber
+                                            entry.put("Message", msg)
+                                            entry.put("Number", num)
+                                        }
+                                        Barcode.TYPE_TEXT, Barcode.TYPE_PRODUCT -> {
+                                            val txt = barcode.rawValue
+                                        }
+                                    }
 
                                     val scaledRect = scaleRect(bounds!!, image)
                                     val croppedBmp: Bitmap = Bitmap.createBitmap(
@@ -312,20 +394,6 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                                     val scaledRect = scaleRect(bounds, image, offset = true)
                                     drawArea.setRectangles(scaledRect, color)
                                 }
-
-                                // See API reference for complete list of supported types
-                                when (barcode.valueType) {
-                                    Barcode.TYPE_WIFI -> {
-                                        val ssid = barcode.wifi!!.ssid
-                                        val password = barcode.wifi!!.password
-                                        val type = barcode.wifi!!.encryptionType
-                                    }
-                                    Barcode.TYPE_URL -> {
-                                        val title = barcode.url!!.title
-                                        val url = barcode.url!!.url
-                                        Log.d("CODE", title.toString() + " " + url.toString())
-                                    }
-                                }
                             }
 
                             imageProxy.close()
@@ -339,7 +407,6 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                             imageButton.visibility = View.INVISIBLE
                             imageProxy.close()
                         }
-                //
             }
         }
 
