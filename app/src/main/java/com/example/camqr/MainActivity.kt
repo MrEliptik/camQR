@@ -287,6 +287,7 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                                 val hash = (decodeFormat(barcode.format) + rawValue).hashCode()
                                 if (hash !in barcodesList) {
                                     val entry = JSONObject()
+                                    entry.put("Hash", hash)
                                     entry.put("Type", barcode.format)
                                     entry.put("QRType", barcode.valueType)
                                     entry.put("Value", barcode.rawValue)
@@ -477,6 +478,18 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
             }
         }
 
+        fun addElement(item: JSONObject) {
+            listCodes.put(item)
+            barcodesList.add(item.get("Hash") as Int)
+            adapter.notifyDataSetChanged()
+            if (barcodesList.size > 0) {
+                val textView: TextView = (c as Activity).findViewById<View>(R.id.helper) as TextView
+                textView.visibility = View.INVISIBLE
+                val imageButton: ImageButton = (c as Activity).findViewById<View>(R.id.clear_btn) as ImageButton
+                imageButton.visibility = View.VISIBLE
+            }
+        }
+
         companion object {
             private const val OFFSET = 20
         }
@@ -499,10 +512,13 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
     override fun onFling(p0: MotionEvent?, p1: MotionEvent?, p2: Float, p3: Float): Boolean {
         try {
             val idx = codes_list_view.pointToPosition(Math.round(p0!!.x), Math.round(p1!!.y))
+            val item = adapter.getItem(idx) as JSONObject
             analyser.clearElement(idx)
             Snackbar
                 .make(mainLayout, "Item deleted", Snackbar.LENGTH_LONG)
                 .setAction("Undo", View.OnClickListener {
+                    analyser.addElement(item)
+                    adapter.notifyDataSetChanged()
                     Snackbar.make(mainLayout, "Action undone", Snackbar.LENGTH_SHORT).show()
                 }).show()
             // return super.onFling();
