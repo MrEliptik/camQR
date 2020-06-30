@@ -122,9 +122,14 @@ class CodesAdapter(private val context: Context,
                     val intent = Intent(Intent.ACTION_INSERT)
                     intent.type = ContactsContract.Contacts.CONTENT_TYPE
 
+                    intent.putExtra(ContactsContract.Intents.Insert.FULL_MODE, true)
                     intent.putExtra(ContactsContract.Intents.Insert.NAME, name.formattedName)
-                    //intent.putExtra(ContactsContract.Intents.Insert.PHONE, person.mobile)
-                    //intent.putExtra(ContactsContract.Intents.Insert.EMAIL, person.email)
+                    intent.putExtra(ContactsContract.Intents.Insert.PHONE, phones[0].number)
+                    intent.putExtra(ContactsContract.Intents.Insert.EMAIL, emails[0].address)
+                    intent.putExtra(ContactsContract.Intents.Insert.POSTAL, addr[0].addressLines)
+                    intent.putExtra(ContactsContract.Intents.Insert.POSTAL_ISPRIMARY, true)
+                    intent.putExtra(ContactsContract.Intents.Insert.COMPANY, org)
+                    intent.putExtra(ContactsContract.Intents.Insert.JOB_TITLE, title)
 
                     context.startActivity(intent)
                 }
@@ -150,13 +155,20 @@ class CodesAdapter(private val context: Context,
                     context.startActivity(intent)
                 }
                 Barcode.TYPE_EMAIL -> {
-                    /*
-                    val addr = barcode.email!!.address
-                    val body = barcode.email!!.body
-                    val sub = barcode.email!!.subject
-                    val type = barcode.email!!.type // HOME, UNKNOWN, WORK
+                    val addr = item.get("Address") as String
+                    val body = item.get("Body") as String
+                    val sub = item.get("Subject") as String
+                    val emailType = item.get("Type")
 
-                     */
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "*/*"
+                        putExtra(Intent.EXTRA_EMAIL, arrayOf(addr))
+                        putExtra(Intent.EXTRA_SUBJECT, sub)
+                        putExtra(Intent.EXTRA_TEXT, body)
+                    }
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    }
                 }
                 Barcode.TYPE_GEO -> {
                     val lat = item.get("Latitude") as Double
