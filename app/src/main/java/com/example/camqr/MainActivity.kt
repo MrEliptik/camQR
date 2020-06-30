@@ -317,10 +317,10 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                                             val phones = barcode.contactInfo!!.phones
                                             val title = barcode.contactInfo!!.title
                                             val urls = barcode.contactInfo!!.urls
-                                            entry.put("Address", addr)
+                                            entry.put("Addresses", addr)
                                             entry.put("Emails", emails)
                                             entry.put("Name", name)
-                                            entry.put("Organisation", org)
+                                            entry.put("Organization", org)
                                             entry.put("Phones", phones)
                                             entry.put("Title", title)
                                             entry.put("Urls", urls)

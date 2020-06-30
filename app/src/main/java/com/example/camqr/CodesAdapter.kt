@@ -8,6 +8,8 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.provider.CalendarContract
+import android.provider.ContactsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +17,6 @@ import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat.startActivity
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.Barcode
 import org.json.JSONArray
@@ -110,28 +111,43 @@ class CodesAdapter(private val context: Context,
                     context.startActivity(intent)
                 }
                 Barcode.TYPE_CONTACT_INFO -> {
-                    /*
-                    val addr = barcode.contactInfo!!.addresses
-                    val emails = barcode.contactInfo!!.emails
-                    val name = barcode.contactInfo!!.name
-                    val org = barcode.contactInfo!!.organization
-                    val phones = barcode.contactInfo!!.phones
-                    val title = barcode.contactInfo!!.title
-                    val urls = barcode.contactInfo!!.urls
+                    val addr = item.get("Addresses") as List<Barcode.Address>
+                    val emails = item.get("Emails") as List<Barcode.Email>
+                    val name = item.get("Name") as Barcode.PersonName
+                    val org = item.get("Organization") as String
+                    val phones = item.get("Phones") as List<Barcode.Phone>
+                    val title = item.get("Title") as String
+                    val urls = item.get("Urls") as List<String>
 
-                     */
+                    val intent = Intent(Intent.ACTION_INSERT)
+                    intent.type = ContactsContract.Contacts.CONTENT_TYPE
+
+                    intent.putExtra(ContactsContract.Intents.Insert.NAME, name.formattedName)
+                    //intent.putExtra(ContactsContract.Intents.Insert.PHONE, person.mobile)
+                    //intent.putExtra(ContactsContract.Intents.Insert.EMAIL, person.email)
+
+                    context.startActivity(intent)
                 }
                 Barcode.TYPE_CALENDAR_EVENT -> {
-                    /*
-                    val desc = barcode.calendarEvent!!.description
-                    val start = barcode.calendarEvent!!.start
-                    val end = barcode.calendarEvent!!.end
-                    val loc = barcode.calendarEvent!!.location
-                    val org = barcode.calendarEvent!!.organizer
-                    val stat = barcode.calendarEvent!!.status
-                    val sum = barcode.calendarEvent!!.summary
+                    val desc = item.get("Description") as String
+                    val start = item.get("Start") as Barcode.CalendarDateTime
+                    val end = item.get("End") as Barcode.CalendarDateTime
 
-                     */
+                    val loc = item.get("Location") as String
+                    val org = item.get("Organizer") as String
+                    val stat = item.get("Status") as String
+                    val sum = item.get("Summary") as String
+
+
+                    val intent = Intent(Intent.ACTION_INSERT)
+                    intent.type = "vnd.android.cursor.item/event"
+
+                    intent.putExtra(CalendarContract.Events.DESCRIPTION, desc)
+                    intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, start.rawValue)
+                    intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, end.rawValue)
+                    intent.putExtra(CalendarContract.Events.ALL_DAY, false)
+                    intent.putExtra(CalendarContract.Events.EVENT_LOCATION, loc)
+                    context.startActivity(intent)
                 }
                 Barcode.TYPE_EMAIL -> {
                     /*
@@ -146,11 +162,12 @@ class CodesAdapter(private val context: Context,
                     val lat = item.get("Latitude") as Double
                     val lng = item.get("Longitude") as Double
 
-                    val navigationIntentUri: Uri =
-                        Uri.parse("google.navigation:q=$lat,$lng") //creating intent with latlng
+                    //val navigationIntentUri: Uri = Uri.parse("google.navigation:q=$lat,$lng") //creating intent with latlng
+                    //val navigationIntentUri: Uri = Uri.parse("geo:$lat,$lng") //creating intent with latlng
+                    val navigationIntentUri: Uri = Uri.parse("geo:$lat,$lng?q=${Uri.encode("$lat,$lng")}")
 
                     val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
-                    mapIntent.setPackage("com.google.android.apps.maps")
+                    //mapIntent.setPackage("com.google.android.apps.maps")
                     context.startActivity(mapIntent)
 
                 }
