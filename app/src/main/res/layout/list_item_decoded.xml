@@ -54,24 +54,28 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:textColor="#F1F0F0"
-                    android:textSize="20sp"
-                    android:text="FORMAT TYPE" />
+                    android:textSize="16sp"
+                    android:text="FORMAT TYPE"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/history_list_qrtype"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginRight="10dp"
                     android:layout_weight="1"
-                    android:textColor="#F1F0F0"
-                    android:textSize="20sp"
-                    android:text="QR TYPE" />
+                    android:textColor="#A3A3A3"
+                    android:textSize="13sp"
+                    android:text="QR TYPE"
+                    android:textStyle="bold"
+                    android:textAlignment="viewEnd" />
             </LinearLayout>
 
             <TextView
                 android:id="@+id/history_list_value"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_weight="2"
                 android:textColor="#BDBDBD"
                 android:textSize="15sp"
                 android:text="https://developers.google.com/ml-kit/vision/barcode-scanning/android" />
@@ -92,8 +96,9 @@
 
                 <Button
                     android:id="@+id/copy_btn"
-                    android:drawableTop="@drawable/copy_24"
+                    android:drawableTop="@drawable/copy"
                     android:text="Copy"
+                    android:textSize="10sp"
                     android:textColor="#03A9F4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -103,8 +108,9 @@
 
                 <Button
                     android:id="@+id/share_btn"
-                    android:drawableTop="@drawable/share_24"
+                    android:drawableTop="@drawable/share"
                     android:text="Share"
+                    android:textSize="10sp"
                     android:textColor="#03A9F4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -114,8 +120,9 @@
 
                 <Button
                     android:id="@+id/goto_btn"
-                    android:drawableTop="@drawable/goto_24"
+                    android:drawableTop="@drawable/go_to"
                     android:text="Browse"
+                    android:textSize="10sp"
                     android:textColor="#03A9F4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
