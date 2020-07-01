@@ -61,6 +61,9 @@ class CodesAdapter(private val context: Context,
         val shareBtn = rowView.findViewById(R.id.share_btn) as Button
         val gotoBtn = rowView.findViewById(R.id.goto_btn) as Button
 
+        // Get QR type icon
+        val qrTypeIcon = rowView.findViewById(R.id.qr_type_icon) as ImageView
+
         val item = getItem(position) as JSONObject
 
         val image = item.get("Image") as Bitmap?
@@ -75,30 +78,39 @@ class CodesAdapter(private val context: Context,
         when (qrType) {
             Barcode.TYPE_WIFI -> {
                 gotoBtn.text = "Connect"
+                qrTypeIcon.setImageResource(R.drawable.wifi_24)
             }
             Barcode.TYPE_URL -> {
                 gotoBtn.text = "Browse"
+                qrTypeIcon.setImageResource(R.drawable.url_24)
             }
             Barcode.TYPE_CONTACT_INFO -> {
                 gotoBtn.text = "Add contact"
+                qrTypeIcon.setImageResource(R.drawable.contact_24)
             }
             Barcode.TYPE_CALENDAR_EVENT -> {
                 gotoBtn.text = "Add event"
+                qrTypeIcon.setImageResource(R.drawable.calendar_24)
             }
             Barcode.TYPE_EMAIL -> {
                 gotoBtn.text = "Send email"
+                qrTypeIcon.setImageResource(R.drawable.email_24)
             }
             Barcode.TYPE_GEO -> {
                 gotoBtn.text = "Navigate"
+                qrTypeIcon.setImageResource(R.drawable.geo_24)
             }
             Barcode.TYPE_PHONE -> {
                 gotoBtn.text = "Dial"
+                qrTypeIcon.setImageResource(R.drawable.phone_24)
             }
             Barcode.TYPE_SMS -> {
                 gotoBtn.text = "SMS"
+                qrTypeIcon.setImageResource(R.drawable.sms_24)
             }
             Barcode.TYPE_TEXT, Barcode.TYPE_PRODUCT -> {
                 gotoBtn.text = "Search web"
+                qrTypeIcon.setImageResource(R.drawable.text_24)
             }
         }
 

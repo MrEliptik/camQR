@@ -58,12 +58,20 @@
                     android:text="FORMAT TYPE"
                     android:textStyle="bold" />
 
+                <ImageView
+                    android:id="@+id/qr_type_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="5dp"
+                    android:textAlignment="viewEnd"
+                    android:src="@drawable/url_24"
+                    android:tint="#A3A3A3" />
+
                 <TextView
                     android:id="@+id/history_list_qrtype"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="10dp"
-                    android:layout_weight="1"
                     android:textColor="#A3A3A3"
                     android:textSize="13sp"
                     android:text="QR TYPE"
