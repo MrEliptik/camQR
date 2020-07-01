@@ -72,6 +72,36 @@ class CodesAdapter(private val context: Context,
         qrTypeTextView.text = decodeQRType(qrType)
         valueTextView.text = item.get("Value").toString()
 
+        when (qrType) {
+            Barcode.TYPE_WIFI -> {
+                gotoBtn.text = "Connect"
+            }
+            Barcode.TYPE_URL -> {
+                gotoBtn.text = "Browse"
+            }
+            Barcode.TYPE_CONTACT_INFO -> {
+                gotoBtn.text = "Add contact"
+            }
+            Barcode.TYPE_CALENDAR_EVENT -> {
+                gotoBtn.text = "Add event"
+            }
+            Barcode.TYPE_EMAIL -> {
+                gotoBtn.text = "Send email"
+            }
+            Barcode.TYPE_GEO -> {
+                gotoBtn.text = "Navigate"
+            }
+            Barcode.TYPE_PHONE -> {
+                gotoBtn.text = "Dial"
+            }
+            Barcode.TYPE_SMS -> {
+                gotoBtn.text = "SMS"
+            }
+            Barcode.TYPE_TEXT, Barcode.TYPE_PRODUCT -> {
+                gotoBtn.text = "Search web"
+            }
+        }
+
         copyBtn.setOnClickListener {
             // Get the clipboard system service
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -190,6 +220,8 @@ class CodesAdapter(private val context: Context,
                     }
                 }
                 Barcode.TYPE_URL -> {
+                    gotoBtn.text = "Browse"
+
                     val title = item.get("Title") as String
                     val url = item.get("Url") as String
 
@@ -198,9 +230,16 @@ class CodesAdapter(private val context: Context,
                     b.putString("url", url) //Your id
                     intent.putExtras(b) //Put your id to your next Intent
 
-                    context.startActivity(intent)
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    }
+                    else{
+                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    }
                 }
                 Barcode.TYPE_CONTACT_INFO -> {
+                    gotoBtn.text = "Add contact"
+
                     val addr = item.get("Addresses") as List<Barcode.Address>
                     val emails = item.get("Emails") as List<Barcode.Email>
                     val name = item.get("Name") as Barcode.PersonName
@@ -221,9 +260,16 @@ class CodesAdapter(private val context: Context,
                     intent.putExtra(ContactsContract.Intents.Insert.COMPANY, org)
                     intent.putExtra(ContactsContract.Intents.Insert.JOB_TITLE, title)
 
-                    context.startActivity(intent)
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    }
+                    else{
+                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    }
                 }
                 Barcode.TYPE_CALENDAR_EVENT -> {
+                    gotoBtn.text = "Add event"
+
                     val desc = item.get("Description") as String
                     val start = item.get("Start") as Barcode.CalendarDateTime
                     val end = item.get("End") as Barcode.CalendarDateTime
@@ -242,9 +288,17 @@ class CodesAdapter(private val context: Context,
                     intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, end.rawValue)
                     intent.putExtra(CalendarContract.Events.ALL_DAY, false)
                     intent.putExtra(CalendarContract.Events.EVENT_LOCATION, loc)
-                    context.startActivity(intent)
+
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    }
+                    else{
+                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    }
                 }
                 Barcode.TYPE_EMAIL -> {
+                    gotoBtn.text = "Send email"
+
                     val addr = item.get("Address") as String
                     val body = item.get("Body") as String
                     val sub = item.get("Subject") as String
@@ -256,11 +310,17 @@ class CodesAdapter(private val context: Context,
                         putExtra(Intent.EXTRA_SUBJECT, sub)
                         putExtra(Intent.EXTRA_TEXT, body)
                     }
+
                     if (intent.resolveActivity(context.packageManager) != null) {
                         context.startActivity(intent)
                     }
+                    else{
+                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    }
                 }
                 Barcode.TYPE_GEO -> {
+                    gotoBtn.text = "Navigate"
+
                     val lat = item.get("Latitude") as Double
                     val lng = item.get("Longitude") as Double
 
@@ -270,38 +330,59 @@ class CodesAdapter(private val context: Context,
 
                     val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
                     //mapIntent.setPackage("com.google.android.apps.maps")
-                    context.startActivity(mapIntent)
+
+                    if (mapIntent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(mapIntent)
+                    }
+                    else{
+                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    }
 
                 }
                 Barcode.TYPE_PHONE -> {
+                    gotoBtn.text = "Dial"
+
                     val num = item.get("Number").toString()
                     val type = item.get("Type") as Int
                     val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$num"))
-                    context.startActivity(intent)
+
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    }
+                    else{
+                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    }
                 }
                 Barcode.TYPE_SMS -> {
+                    gotoBtn.text = "SMS"
+
                     val msg = item.get("Message") as String
                     val num = item.get("Number") as String
 
                     val uri = Uri.parse("smsto:$num")
                     val it = Intent(Intent.ACTION_SENDTO, uri)
                     it.putExtra("sms_body", msg)
-                    context.startActivity(it)
 
-                    /*
-                    context.startActivity(
-                        Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.fromParts("sms", number, null)
-                        )
-                    )
-                    */
+                    if (it.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(it)
+                    }
+                    else{
+                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    }
                 }
                 Barcode.TYPE_TEXT, Barcode.TYPE_PRODUCT -> {
+                    gotoBtn.text = "Search web"
+
                     val txt = item.get("Value") as String
                     val intent = Intent(Intent.ACTION_WEB_SEARCH)
                     intent.putExtra(SearchManager.QUERY, txt) // query contains search string
-                    context.startActivity(intent)
+
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    }
+                    else{
+                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    }
                 }
             }
         }
