@@ -109,7 +109,7 @@ class CodesAdapter(private val context: Context,
             clipboard.setPrimaryClip(clip)
 
 
-            val imgResource: Int = R.drawable.copy_done_24
+            val imgResource: Int = R.drawable.copied
             copyBtn.setCompoundDrawablesWithIntrinsicBounds(0, imgResource, 0, 0)
             copyBtn.text = "Copied!"
             copyBtn.invalidate()
