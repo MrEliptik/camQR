@@ -4,21 +4,28 @@ import android.app.SearchManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Context.WIFI_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
-import android.net.Uri
+import android.net.*
+import android.net.ConnectivityManager.NetworkCallback
+import android.net.wifi.WifiConfiguration
+import android.net.wifi.WifiManager
+import android.net.wifi.WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS
+import android.net.wifi.WifiNetworkSpecifier
+import android.net.wifi.WifiNetworkSuggestion
 import android.os.Bundle
+import android.os.PatternMatcher
 import android.provider.CalendarContract
 import android.provider.ContactsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
+import androidx.core.content.ContextCompat.getSystemService
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.Barcode
+import com.google.mlkit.vision.barcode.Barcode.WiFi.*
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -97,7 +104,90 @@ class CodesAdapter(private val context: Context,
                 Barcode.TYPE_WIFI -> {
                     val ssid = item.get("SSID") as String
                     val password = item.get("Password") as String
-                    val type = item.get("Encryption") as String
+                    val type = item.get("Encryption") as Int
+
+                    // only for Q and newer versions
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        Toast.makeText(context, "Unable to connect to WiFi using Android Q or above", Toast.LENGTH_LONG).show()
+                        /*
+                        val specifier: NetworkSpecifier = WifiNetworkSpecifier.Builder()
+                                .setSsidPattern(PatternMatcher(ssid, PatternMatcher.PATTERN_PREFIX))
+                                .setWpa2Passphrase(password)
+                                .build()
+                        val request: NetworkRequest =
+                            NetworkRequest.Builder()
+                                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                                .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                                .setNetworkSpecifier(specifier)
+                                .build()
+                        val connectivityManager: ConnectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                        var networkCallback = object : NetworkCallback() {
+                            override fun onUnavailable() {
+                                super.onUnavailable()
+                            }
+
+                            override fun onLosing(network: Network, maxMsToLive: Int) {
+                                super.onLosing(network, maxMsToLive)
+
+                            }
+
+                            override fun onAvailable(network: Network) {
+                                super.onAvailable(network)
+                                connectivityManager?.bindProcessToNetwork(network)
+
+                                Toast.makeText(context, "Successfully connected to: $ssid", Toast.LENGTH_SHORT).show()
+
+                                val builder = WifiNetworkSuggestion.Builder()
+                                    .setSsid(ssid)
+                                    .setWpa2Passphrase(password)
+                                val suggestion: WifiNetworkSuggestion = builder.build()
+
+                                val list: ArrayList<WifiNetworkSuggestion> = ArrayList()
+                                list.add(suggestion)
+
+                                val manager = context.getSystemService(WIFI_SERVICE) as WifiManager?
+                                val status = manager!!.addNetworkSuggestions(list)
+
+                                if (status == STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
+                                    //We have successfully added our wifi for the system to consider
+                                }
+                            }
+
+                            override fun onLost(network: Network) {
+                                super.onLost(network)
+                            }
+                        }
+                        connectivityManager.requestNetwork(request, networkCallback)
+                        */
+                    }
+                    else {
+                        val wifiConfig = WifiConfiguration()
+                        wifiConfig.SSID = java.lang.String.format("\"%s\"", ssid)
+
+                        // Check password type
+                        when(type) {
+                            TYPE_OPEN -> {
+                                wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+                            }
+                            TYPE_WPA -> {
+                                wifiConfig.preSharedKey = String.format("\"%s\"", password)
+                            }
+                            TYPE_WEP -> {
+                                wifiConfig.wepKeys[0] = "\"" + password + "\"";
+                                wifiConfig.wepTxKeyIndex = 0;
+                                wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+                                wifiConfig.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
+                            }
+                        }
+
+                        val wifiManager =
+                            context.getSystemService(WIFI_SERVICE) as WifiManager?
+                        //remember id
+                        val netId = wifiManager!!.addNetwork(wifiConfig)
+                        wifiManager!!.disconnect()
+                        wifiManager!!.enableNetwork(netId, true)
+                        wifiManager!!.reconnect()
+                    }
                 }
                 Barcode.TYPE_URL -> {
                     val title = item.get("Title") as String
