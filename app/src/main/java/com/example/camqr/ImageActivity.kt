@@ -245,9 +245,10 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                             scaledRect.right.toInt(),
                             scaledRect.bottom.toInt()
                         )
-
-                        entry.put("Image", croppedBmp)
                         */
+
+                        entry.put("Image", image.bitmapInternal)
+
 
                         listCodes.put(entry)
                         barcodesList.add(hash)
@@ -273,6 +274,20 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                 imageButton.visibility = View.INVISIBLE
                 */
             }
+    }
+
+    fun clearElement(pos: Int) {
+        listCodes.remove(pos)
+        // Use removeAt instead of remove, as remove can be used with an object
+        // and an Int is an object compared to primitive type int
+        barcodesList.removeAt(pos)
+        adapter.notifyDataSetChanged()
+    }
+
+    fun addElement(item: JSONObject) {
+        listCodes.put(item)
+        barcodesList.add(item.get("Hash") as Int)
+        adapter.notifyDataSetChanged()
     }
 
     private fun decodeFormat(format: Int): String? {
@@ -340,15 +355,15 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
 
     override fun onFling(p0: MotionEvent?, p1: MotionEvent?, p2: Float, p3: Float): Boolean {
         try {
-            val idx = codes_list_view.pointToPosition(Math.round(p0!!.x), Math.round(p1!!.y))
+            val idx = codes_list_view_image.pointToPosition(Math.round(p0!!.x), Math.round(p1!!.y))
             val item = adapter.getItem(idx) as JSONObject
-            //analyser.clearElement(idx)
+            clearElement(idx)
             Snackbar
-                .make(mainLayout, "Item deleted", Snackbar.LENGTH_LONG)
+                .make(main_image_layout, "Item deleted", Snackbar.LENGTH_LONG)
                 .setAction("Undo", View.OnClickListener {
-                    //analyser.addElement(item)
+                    addElement(item)
                     adapter.notifyDataSetChanged()
-                    Snackbar.make(mainLayout, "Action undone", Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(main_image_layout, "Action undone", Snackbar.LENGTH_SHORT).show()
                 }).show()
             // return super.onFling();
         } catch (e: java.lang.Exception) {

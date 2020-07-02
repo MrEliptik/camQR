@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ImageActivity"
-    android:background="#E4E4E4">
+    android:background="#E4E4E4"
+    android:id="@+id/main_image_layout">
 
     <ImageView
         android:id="@+id/image_view"
@@ -20,8 +21,10 @@
 
     <ListView
         android:id="@+id/codes_list_view_image"
-        android:layout_marginVertical="40dp"
+        android:layout_marginVertical="10dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:dividerHeight="0dp"
+        android:divider="@null" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
