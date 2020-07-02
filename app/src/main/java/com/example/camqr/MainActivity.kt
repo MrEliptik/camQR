@@ -12,7 +12,9 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.RectF
 import android.media.Image
+import android.net.Uri
 import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
 import android.util.Size
 import android.view.GestureDetector
@@ -54,7 +56,6 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
     private var listCodes: JSONArray = JSONArray()
     private lateinit var adapter: CodesAdapter
 
-    private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
 
     private lateinit var analyser: QRAnalyser
@@ -145,12 +146,24 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
             }
         }
 
+        gallery_btn.setOnClickListener {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_SELECT_IMAGE_IN_ALBUM)
+            }
+            else{
+                val intent = Intent(Intent.ACTION_GET_CONTENT)
+                intent.type = "image/*"
+                if (intent.resolveActivity(packageManager) != null) {
+                    startActivityForResult(intent, REQUEST_SELECT_IMAGE_IN_ALBUM)
+                }
+            }
+        }
+
         val detector = GestureDetector(this, this)
         codes_list_view.setOnTouchListener { view, e ->
             detector.onTouchEvent(e)
             false
         }
-
     }
 
     override fun onBackPressed() {
@@ -235,11 +248,23 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
         }, ContextCompat.getMainExecutor(this))
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_SELECT_IMAGE_IN_ALBUM){
+            // Switch to resultActivity
+            val i = Intent(applicationContext, ImageActivity::class.java)
+            i.putExtra("imageUri", data?.data.toString())
+            startActivity(i)
+        }
+    }
+
     companion object {
         private const val TAG = "CameraXBasic"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
+        private const val REQUEST_SELECT_IMAGE_IN_ALBUM = 5
     }
 
     private class QRAnalyser(private val c: Context, private val viewFinder:PreviewView, private val drawArea:DrawView,

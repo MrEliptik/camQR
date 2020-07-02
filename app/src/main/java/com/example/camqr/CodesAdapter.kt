@@ -28,6 +28,7 @@ import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.Barcode.WiFi.*
 import org.json.JSONArray
 import org.json.JSONObject
+import java.lang.Exception
 
 
 class CodesAdapter(private val context: Context,
@@ -66,9 +67,13 @@ class CodesAdapter(private val context: Context,
 
         val item = getItem(position) as JSONObject
 
-        val image = item.get("Image") as Bitmap?
-
-        if (image != null) imageThumbnail.setImageBitmap(image)
+        try{
+            val image = item.get("Image") as Bitmap?
+            imageThumbnail.setImageBitmap(image)
+        }
+        catch (e: Exception){
+            imageThumbnail.setImageResource(R.drawable.gallery_24)
+        }
         val formatType = item.get("Type") as Int
         val qrType = item.get("QRType") as Int
         typeTextView.text = decodeFormat(formatType)
