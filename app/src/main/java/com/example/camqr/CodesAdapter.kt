@@ -7,28 +7,23 @@ import android.content.Context
 import android.content.Context.WIFI_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
-import android.net.*
-import android.net.ConnectivityManager.NetworkCallback
+import android.net.Uri
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
-import android.net.wifi.WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS
-import android.net.wifi.WifiNetworkSpecifier
-import android.net.wifi.WifiNetworkSuggestion
 import android.os.Bundle
-import android.os.PatternMatcher
 import android.provider.CalendarContract
 import android.provider.ContactsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.*
-import androidx.core.content.ContextCompat.getSystemService
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.Barcode.WiFi.*
 import org.json.JSONArray
 import org.json.JSONObject
-import java.lang.Exception
 
 
 class CodesAdapter(private val context: Context,
@@ -403,6 +398,10 @@ class CodesAdapter(private val context: Context,
                 }
             }
         }
+
+        val anim: Animation = AnimationUtils.loadAnimation(context, android.R.anim.fade_in)
+        anim.duration = 500
+        rowView.startAnimation(anim)
 
         return rowView
     }

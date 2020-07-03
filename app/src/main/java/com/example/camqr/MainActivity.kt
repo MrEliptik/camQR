@@ -12,14 +12,14 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.RectF
 import android.media.Image
-import android.net.Uri
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import android.util.Size
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.ImageButton
 import android.widget.ListView
 import android.widget.TextView
@@ -40,7 +40,6 @@ import com.google.mlkit.vision.common.InputImage
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.random.Random
@@ -265,6 +264,9 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         private const val REQUEST_SELECT_IMAGE_IN_ALBUM = 5
+        private const val SWIPE_MIN_DISTANCE = 120
+        private const val SWIPE_MAX_OFF_PATH = 250
+        private const val SWIPE_THRESHOLD_VELOCITY = 200
     }
 
     private class QRAnalyser(private val c: Context, private val viewFinder:PreviewView, private val drawArea:DrawView,
@@ -489,18 +491,32 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
             imageButton.visibility = View.INVISIBLE
         }
 
-        fun clearElement(pos: Int) {
-            listCodes.remove(pos)
-            // Use removeAt instead of remove, as remove can be used with an object
-            // and an Int is an object compared to primitive type int
-            barcodesList.removeAt(pos)
-            adapter.notifyDataSetChanged()
-            if (barcodesList.size == 0) {
-                val textView: TextView = (c as Activity).findViewById<View>(R.id.helper) as TextView
-                textView.visibility = View.VISIBLE
-                val imageButton: ImageButton = (c as Activity).findViewById<View>(R.id.clear_btn) as ImageButton
-                imageButton.visibility = View.INVISIBLE
+        fun clearElement(pos: Int, view: View?, direction: String) {
+            var animation: Animation
+            if (direction == "left"){
+                animation = AnimationUtils.loadAnimation(c, R.anim.slide_left)
             }
+            else{
+                animation = AnimationUtils.loadAnimation(c, R.anim.slide_right)
+            }
+            animation.setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart(animation: Animation?) {}
+                override fun onAnimationRepeat(animation: Animation?) {}
+                override fun onAnimationEnd(animation: Animation?) {
+                    listCodes.remove(pos)
+                    // Use removeAt instead of remove, as remove can be used with an object
+                    // and an Int is an object compared to primitive type int
+                    barcodesList.removeAt(pos)
+                    adapter.notifyDataSetChanged()
+                    if (barcodesList.size == 0) {
+                        val textView: TextView = (c as Activity).findViewById<View>(R.id.helper) as TextView
+                        textView.visibility = View.VISIBLE
+                        val imageButton: ImageButton = (c as Activity).findViewById<View>(R.id.clear_btn) as ImageButton
+                        imageButton.visibility = View.INVISIBLE
+                    }
+                }
+            })
+            view?.startAnimation(animation)
         }
 
         fun addElement(item: JSONObject) {
@@ -538,7 +554,17 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
         try {
             val idx = codes_list_view.pointToPosition(Math.round(p0!!.x), Math.round(p1!!.y))
             val item = adapter.getItem(idx) as JSONObject
-            analyser.clearElement(idx)
+            // right to left swipe
+            if (p0!!.x - p1!!.x > SWIPE_MIN_DISTANCE
+                && Math.abs(p2) > SWIPE_THRESHOLD_VELOCITY) {
+                analyser.clearElement(idx, getViewByPosition(idx, codes_list_view), "left")
+            }
+            // left to right swipe
+            else if (p1.x - p0.x > SWIPE_MIN_DISTANCE
+                && Math.abs(p2) > SWIPE_THRESHOLD_VELOCITY) {
+                analyser.clearElement(idx, getViewByPosition(idx, codes_list_view), "right")
+            }
+
             Snackbar
                 .make(mainLayout, "Item deleted", Snackbar.LENGTH_LONG)
                 .setAction("Undo", View.OnClickListener {
@@ -551,6 +577,7 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
             // do nothing
         }
         return false
+
     }
 
     override fun onScroll(p0: MotionEvent?, p1: MotionEvent?, p2: Float, p3: Float): Boolean {
@@ -560,6 +587,17 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
 
     override fun onLongPress(p0: MotionEvent?) {
         //Toast.makeText(this, "onLongPress", Toast.LENGTH_SHORT).show()
+    }
+
+    fun getViewByPosition(pos: Int, listView: ListView): View? {
+        val firstListItemPosition = listView.firstVisiblePosition
+        val lastListItemPosition = firstListItemPosition + listView.childCount - 1
+        return if (pos < firstListItemPosition || pos > lastListItemPosition) {
+            listView.adapter.getView(pos, null, listView)
+        } else {
+            val childIndex = pos - firstListItemPosition
+            listView.getChildAt(childIndex)
+        }
     }
 }
 

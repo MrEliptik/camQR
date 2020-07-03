@@ -1,5 +1,6 @@
 package com.example.camqr
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.*
 import android.graphics.drawable.Drawable
@@ -10,7 +11,12 @@ import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
+import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.ListView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.Barcode
@@ -19,6 +25,7 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import kotlinx.android.synthetic.main.activity_image.*
+import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.random.Random
@@ -264,12 +271,26 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
             }
     }
 
-    fun clearElement(pos: Int) {
-        listCodes.remove(pos)
-        // Use removeAt instead of remove, as remove can be used with an object
-        // and an Int is an object compared to primitive type int
-        barcodesList.removeAt(pos)
-        adapter.notifyDataSetChanged()
+    fun clearElement(pos: Int, view: View?, direction: String) {
+        var animation: Animation
+        if (direction == "left"){
+            animation = AnimationUtils.loadAnimation(this, R.anim.slide_left)
+        }
+        else{
+            animation = AnimationUtils.loadAnimation(this, R.anim.slide_right)
+        }
+        animation.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationStart(animation: Animation?) {}
+            override fun onAnimationRepeat(animation: Animation?) {}
+            override fun onAnimationEnd(animation: Animation?) {
+                listCodes.remove(pos)
+                // Use removeAt instead of remove, as remove can be used with an object
+                // and an Int is an object compared to primitive type int
+                barcodesList.removeAt(pos)
+                adapter.notifyDataSetChanged()
+            }
+        })
+        view?.startAnimation(animation)
     }
 
     fun addElement(item: JSONObject) {
@@ -474,6 +495,9 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
 
     companion object {
         private const val OFFSET = 20
+        private const val SWIPE_MIN_DISTANCE = 120
+        private const val SWIPE_MAX_OFF_PATH = 250
+        private const val SWIPE_THRESHOLD_VELOCITY = 200
     }
 
     override fun onShowPress(p0: MotionEvent?) {
@@ -494,7 +518,19 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
         try {
             val idx = codes_list_view_image.pointToPosition(Math.round(p0!!.x), Math.round(p1!!.y))
             val item = adapter.getItem(idx) as JSONObject
-            clearElement(idx)
+            // right to left swipe
+            if (p0!!.x - p1!!.x > SWIPE_MIN_DISTANCE
+                && Math.abs(p2) > SWIPE_THRESHOLD_VELOCITY
+            ) {
+                clearElement(idx, getViewByPosition(idx, codes_list_view_image), "left")
+            }
+            // left to right swipe
+            else if (p1.x - p0.x > SWIPE_MIN_DISTANCE
+                && Math.abs(p2) > SWIPE_THRESHOLD_VELOCITY
+            ) {
+                clearElement(idx, getViewByPosition(idx, codes_list_view_image), "right")
+            }
+
             Snackbar
                 .make(main_image_layout, "Item deleted", Snackbar.LENGTH_LONG)
                 .setAction("Undo", View.OnClickListener {
@@ -516,5 +552,16 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
 
     override fun onLongPress(p0: MotionEvent?) {
         //Toast.makeText(this, "onLongPress", Toast.LENGTH_SHORT).show()
+    }
+
+    fun getViewByPosition(pos: Int, listView: ListView): View? {
+        val firstListItemPosition = listView.firstVisiblePosition
+        val lastListItemPosition = firstListItemPosition + listView.childCount - 1
+        return if (pos < firstListItemPosition || pos > lastListItemPosition) {
+            listView.adapter.getView(pos, null, listView)
+        } else {
+            val childIndex = pos - firstListItemPosition
+            listView.getChildAt(childIndex)
+        }
     }
 }
