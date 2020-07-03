@@ -1,26 +1,17 @@
 package com.example.camqr
 
-import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.Rect
-import android.graphics.RectF
+import android.graphics.*
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
-import android.util.Half.EPSILON
-import android.util.Half.MIN_VALUE
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import android.widget.ImageButton
-import android.widget.TextView
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.Camera
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Preview
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScanner
@@ -28,11 +19,8 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import kotlinx.android.synthetic.main.activity_image.*
-import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import kotlin.random.Random
 
 class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
@@ -236,19 +224,18 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                         }
 
                         //val scaledRect = scaleRect(bounds!!, image, offset = false)
-                        /*
-                        val scaledRect = scaleRect(bounds!!, image, offset = false)
+                        val posInImageView = getBitmapPositionInsideImageView(image_view)
+                        val scaledRect = scaleRectForBitmap(bounds!!, posInImageView!!)
                         val croppedBmp: Bitmap = Bitmap.createBitmap(
                             image.bitmapInternal!!,
                             scaledRect!!.left.toInt(),
                             scaledRect!!.top.toInt(),
-                            scaledRect.right.toInt(),
-                            scaledRect.bottom.toInt()
+                            scaledRect.width().toInt(),
+                            scaledRect.height().toInt()
                         )
-                        */
 
-                        entry.put("Image", image.bitmapInternal)
-
+                        //entry.put("Image", image.bitmapInternal)
+                        entry.put("Image", croppedBmp)
 
                         listCodes.put(entry)
                         barcodesList.add(hash)
@@ -258,21 +245,22 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                     }
 
                     if (bounds != null) {
-                        val scaledRect = scaleRect(bounds, image, offset = false)
-                        drawAreaImage.setRectangles(scaledRect, color)
+                        val posInImageView = getBitmapPositionInsideImageView(image_view)
+                        val scaledRect = scaleRectForDrawing(bounds!!, posInImageView!!)
+                        val offsetScaledRect = RectF(
+                            (scaledRect.left + posInImageView!![0]),
+                            (scaledRect.top + posInImageView!![1]),
+                            (scaledRect.right + posInImageView!![0]),
+                            (scaledRect.bottom + posInImageView!![1])
+                        )
+
+                        drawAreaImage.setRectangles(offsetScaledRect, color)
                     }
                 }
             }
             .addOnFailureListener {
                 Log.d("DEBUG", "FAIL")
                 // Task failed with an exception
-                /*
-                Log.d("CODE", it.toString())
-                val textView: TextView = (c as Activity).findViewById<View>(R.id.helper) as TextView
-                textView.visibility = View.VISIBLE
-                val imageButton: ImageButton = (c as Activity).findViewById<View>(R.id.clear_btn) as ImageButton
-                imageButton.visibility = View.INVISIBLE
-                */
             }
     }
 
@@ -289,6 +277,47 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
         barcodesList.add(item.get("Hash") as Int)
         adapter.notifyDataSetChanged()
     }
+
+    /**
+     * Returns the bitmap position inside an imageView.
+     * @param imageView source ImageView
+     * @return 0: left, 1: top, 2: width, 3: height
+     */
+    fun getBitmapPositionInsideImageView(imageView: ImageView?): IntArray? {
+        val ret = IntArray(4)
+        if (imageView?.drawable == null) return ret
+
+        // Get image dimensions
+        // Get image matrix values and place them in an array
+        val f = FloatArray(9)
+        imageView.imageMatrix.getValues(f)
+
+        // Extract the scale values using the constants (if aspect ratio maintained, scaleX == scaleY)
+        val scaleX = f[Matrix.MSCALE_X]
+        val scaleY = f[Matrix.MSCALE_Y]
+
+        // Get the drawable (could also get the bitmap behind the drawable and getWidth/getHeight)
+        val d: Drawable = imageView.drawable
+        val origW: Int = d.intrinsicWidth
+        val origH: Int = d.intrinsicHeight
+
+        // Calculate the actual dimensions
+        val actW = Math.round(origW * scaleX)
+        val actH = Math.round(origH * scaleY)
+        ret[2] = actW
+        ret[3] = actH
+
+        // Get image position
+        // We assume that the image is centered into ImageView
+        val imgViewW: Int = imageView.width
+        val imgViewH: Int = imageView.height
+        val top = (imgViewH - actH) / 2
+        val left = (imgViewW - actW) / 2
+        ret[0] = left
+        ret[1] = top
+        return ret
+    }
+
 
     private fun decodeFormat(format: Int): String? {
         return when (format) {
@@ -309,25 +338,133 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
         }
     }
 
+    private fun scaleRectForBitmap(rect: Rect, pos: IntArray): RectF {
+        val imViewWidth = pos[2]
+        val imViewHeight = pos[3]
+
+        val imRealWidth = image_view.drawable.intrinsicWidth
+        val imRealHeight = image_view.drawable.intrinsicHeight
+
+        if (imViewHeight < imRealHeight && imViewWidth < imRealWidth){
+            if (rect.left < 0) rect.left = 0
+            if (rect.top < 0) rect.top = 0
+            if (rect.right < 0) rect.right = 0
+            if (rect.bottom < 0) rect.bottom = 0
+            return RectF(rect)
+        }
+
+        val wFactor = imRealWidth.toFloat()/imViewWidth
+        val hFactor = imRealHeight.toFloat()/imViewHeight
+
+        val scaledRect = RectF(rect)
+
+        scaledRect.left = (rect.left * wFactor)
+        scaledRect.top = (rect.top * hFactor)
+        scaledRect.right = (rect.right * wFactor)
+        scaledRect.bottom = (rect.bottom * hFactor)
+
+        if (wFactor > 1) {
+            scaledRect.left = (rect.left * (1/wFactor))
+            scaledRect.right = (rect.right * (1/wFactor))
+        }
+        if (hFactor > 1) {
+            scaledRect.top = (rect.top * (1/hFactor))
+            scaledRect.bottom = (rect.bottom * (1/hFactor))
+        }
+        if (scaledRect.left < 0) scaledRect.left = 0F
+        if (scaledRect.top < 0) scaledRect.top = 0F
+        if (scaledRect.right < 0) scaledRect.right = 0F
+        if (scaledRect.bottom < 0) scaledRect.bottom = 0F
+
+        return scaledRect
+    }
+
+    private fun scaleRectForDrawing(rect: Rect, pos: IntArray): RectF {
+        val imViewWidth = pos[2]
+        val imViewHeight = pos[3]
+
+        val imRealWidth = image_view.drawable.intrinsicWidth
+        val imRealHeight = image_view.drawable.intrinsicHeight
+
+        if (imViewHeight > imRealHeight && imViewWidth > imRealWidth){
+            if (rect.left < 0) rect.left = 0
+            if (rect.top < 0) rect.top = 0
+            if (rect.right < 0) rect.right = 0
+            if (rect.bottom < 0) rect.bottom = 0
+            return RectF(rect)
+        }
+
+        val wFactor = imRealWidth.toFloat()/imViewWidth
+        val hFactor = imRealHeight.toFloat()/imViewHeight
+
+        val scaledRect = RectF(rect)
+
+        scaledRect.left = (rect.left * wFactor)
+        scaledRect.top = (rect.top * hFactor)
+        scaledRect.right = (rect.right * wFactor)
+        scaledRect.bottom = (rect.bottom * hFactor)
+
+        if (wFactor > 1) {
+            scaledRect.left = (rect.left * (1/wFactor))
+            scaledRect.right = (rect.right * (1/wFactor))
+        }
+        if (hFactor > 1) {
+            scaledRect.top = (rect.top * (1/hFactor))
+            scaledRect.bottom = (rect.bottom * (1/hFactor))
+        }
+        if (scaledRect.left < 0) scaledRect.left = 0F
+        if (scaledRect.top < 0) scaledRect.top = 0F
+        if (scaledRect.right < 0) scaledRect.right = 0F
+        if (scaledRect.bottom < 0) scaledRect.bottom = 0F
+
+        return scaledRect
+    }
+
     private fun scaleRect(rect: Rect, image: InputImage, offset: Boolean = false): RectF {
-        val wFactor = image_view.width.toFloat()/image.height
-        val hFactor = image_view.height.toFloat()/image.width
+        if (image.height < image_view.width && image.width < image_view.height){
+            if (rect.left < 0) rect.left = 0
+            if (rect.top < 0) rect.top = 0
+            if (rect.right < 0) rect.right = 0
+            if (rect.bottom < 0) rect.bottom = 0
+            return RectF(rect)
+        }
+
+        val wFactor = image_view.width.toFloat()/image.width
+        val hFactor = image_view.height.toFloat()/image.height
 
         val scaledRect = RectF(rect)
         if(offset){
             scaledRect.left = (rect.left * wFactor) - OFFSET
-            scaledRect.top = (rect.top * hFactor) - OFFSET
             scaledRect.right = (rect.right * wFactor) + OFFSET
+            scaledRect.top = (rect.top * hFactor) - OFFSET
             scaledRect.bottom = (rect.bottom * hFactor) + OFFSET
+            if (wFactor > 1) {
+                scaledRect.left = (rect.left * (1/wFactor)) - OFFSET
+                scaledRect.right = (rect.right * (1/wFactor)) + OFFSET
+            }
+            if (hFactor > 1) {
+                scaledRect.top = (rect.top * (1/hFactor)) - OFFSET
+                scaledRect.bottom = (rect.bottom * (1/hFactor)) + OFFSET
+            }
+
         }
         else {
             scaledRect.left = (rect.left * wFactor)
-            if (scaledRect.left < 0) scaledRect.left = 0F
             scaledRect.top = (rect.top * hFactor)
-            if (scaledRect.top < 0) scaledRect.top = 0F
             scaledRect.right = (rect.right * wFactor)
-            if (scaledRect.right < 0) scaledRect.right = 0F
             scaledRect.bottom = (rect.bottom * hFactor)
+
+            if (wFactor > 1) {
+                scaledRect.left = (rect.left * (1/wFactor)) - OFFSET
+                scaledRect.right = (rect.right * (1/wFactor)) + OFFSET
+            }
+            if (hFactor > 1) {
+                scaledRect.top = (rect.top * (1/hFactor)) - OFFSET
+                scaledRect.bottom = (rect.bottom * (1/hFactor)) + OFFSET
+            }
+            if (scaledRect.left < 0) scaledRect.left = 0F
+            if (scaledRect.top < 0) scaledRect.top = 0F
+            if (scaledRect.right < 0) scaledRect.right = 0F
             if (scaledRect.bottom < 0) scaledRect.bottom = 0F
         }
 
