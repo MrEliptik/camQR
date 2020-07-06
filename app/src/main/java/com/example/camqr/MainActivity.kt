@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.*
-import android.media.ExifInterface
 import android.media.Image
 import android.os.Bundle
 import android.util.Log
@@ -36,14 +35,12 @@ import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
-import kotlinx.android.synthetic.main.activity_image.*
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import kotlin.random.Random
 
 
 class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
@@ -276,6 +273,8 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
         : ImageAnalysis.Analyzer {
 
         private var barcodesList: ArrayList<Int> = ArrayList()
+        private var imageAnalysisWidth = 0
+        private var imageAnalysisHeight = 0
 
         @SuppressLint("UnsafeExperimentalUsageError")
         override fun analyze(imageProxy: ImageProxy) {
@@ -289,7 +288,6 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
 
                             // Clear previous rectangles and codes
                             drawArea.clearRectangles()
-                            //listCodes = JSONArray()
 
                             if (barcodes.size > 0) {
                                 textView.visibility = View.INVISIBLE
@@ -300,16 +298,7 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
 
                             // Task completed successfully
                             for (barcode in barcodes) {
-
-                                val color = Color.argb(
-                                    255,
-                                    Random.nextInt(256),
-                                    Random.nextInt(256),
-                                    Random.nextInt(256)
-                                )
-
                                 val bounds = barcode.boundingBox
-
                                 val rawValue = barcode.rawValue
 
                                 val hash = (decodeFormat(barcode.format) + rawValue).hashCode()
@@ -319,7 +308,32 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                                     entry.put("Type", barcode.format)
                                     entry.put("QRType", barcode.valueType)
                                     entry.put("Value", barcode.rawValue)
-                                    entry.put("Color", color)
+                                    var rotatedBitmap : Bitmap? = null
+                                    // CameraX api should always return image as YUV_420_888
+                                    if (mediaImage.format == ImageFormat.YUV_420_888) {
+
+                                        val bitmap = mediaImage.toBitmap()
+                                        // -> Some device have the sensor in landscape mode
+                                        // meaning the image should be rotated for OCR
+
+                                        when (imageProxy.imageInfo.rotationDegrees) {
+                                            90 -> rotatedBitmap = rotateImage(bitmap, 90F)
+                                            180 -> rotatedBitmap = rotateImage(bitmap, 180F)
+                                            270 -> rotatedBitmap = rotateImage(bitmap, 270F)
+                                            else -> rotatedBitmap = bitmap
+                                        }
+
+                                        imageAnalysisHeight = rotatedBitmap!!.height
+                                        imageAnalysisWidth = rotatedBitmap!!.width
+                                    }
+                                    val croppedBmp: Bitmap = Bitmap.createBitmap(
+                                        rotatedBitmap!!,
+                                        bounds!!.left,
+                                        bounds!!.top,
+                                        bounds!!.width(),
+                                        bounds!!.height()
+                                    )
+                                    entry.put("Image", croppedBmp)
 
                                     // See API reference for complete list of supported types
                                     when (barcode.valueType) {
@@ -402,31 +416,6 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                                         }
                                     }
 
-                                    // CameraX api should always return image as YUV_420_888
-                                    if (mediaImage.format == ImageFormat.YUV_420_888) {
-
-                                        val bitmap = mediaImage.toBitmap()
-                                        // -> Some device have the sensor in landscape mode
-                                        // meaning the image should be rotated for OCR
-                                        var rotatedBitmap : Bitmap? = null
-                                        when (imageProxy.imageInfo.rotationDegrees) {
-                                            90 -> rotatedBitmap = rotateImage(bitmap, 90F)
-                                            180 -> rotatedBitmap = rotateImage(bitmap, 180F)
-                                            270 -> rotatedBitmap = rotateImage(bitmap, 270F)
-                                            else -> rotatedBitmap = bitmap
-                                        }
-
-                                        val croppedBmp: Bitmap = Bitmap.createBitmap(
-                                            rotatedBitmap!!,
-                                            bounds!!.left,
-                                            bounds!!.top,
-                                            bounds!!.width(),
-                                            bounds!!.height()
-                                        )
-
-                                        entry.put("Image", croppedBmp)
-                                    }
-
                                     listCodes.put(entry)
                                     barcodesList.add(hash)
                                     adapter.notifyDataSetChanged()
@@ -435,8 +424,8 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                                 }
 
                                 if (bounds != null) {
-                                    val scaledRect = scaleRect(bounds, image, offset = true)
-                                    drawArea.setRectangles(scaledRect, color)
+                                    val scaledRect = scaleRectForDrawing(bounds)
+                                    drawArea.setRectangles(scaledRect)
                                 }
                             }
 
@@ -447,7 +436,7 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                             Log.d("CODE", it.toString())
                             val textView: TextView = (c as Activity).findViewById<View>(R.id.helper) as TextView
                             textView.visibility = View.VISIBLE
-                            val imageButton: ImageButton = (c as Activity).findViewById<View>(R.id.clear_btn) as ImageButton
+                            val imageButton: ImageButton = c.findViewById<View>(R.id.clear_btn) as ImageButton
                             imageButton.visibility = View.INVISIBLE
                             imageProxy.close()
                         }
@@ -506,38 +495,16 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
             }
         }
 
-        private fun scaleRectForBitmap(rect: Rect, image: InputImage): RectF {
+        private fun scaleRectForDrawing(rect: Rect): RectF {
+            val wFactor = drawArea.width.toFloat()/ imageAnalysisWidth
+            val hFactor = drawArea.height.toFloat()/ imageAnalysisHeight
 
             val scaledRect = RectF(rect)
 
-            return scaledRect
-        }
-
-        private fun scaleRectForDrawing(rect: Rect, image: InputImage): RectF {
-
-            val scaledRect = RectF(rect)
-
-            return scaledRect
-        }
-
-        private fun scaleRect(rect: Rect, image: InputImage, offset: Boolean = false): RectF {
-            val wFactor = drawArea.width.toFloat()/image.height
-            val hFactor = drawArea.height.toFloat()/image.width
-
-            val scaledRect = RectF(rect)
-            if(offset){
-                scaledRect.left = (rect.left * wFactor) - OFFSET
-                scaledRect.top = (rect.top * hFactor) - OFFSET
-                scaledRect.right = (rect.right * wFactor) + OFFSET
-                scaledRect.bottom = (rect.bottom * hFactor) + OFFSET
-            }
-            else {
-                scaledRect.left = (rect.left * wFactor)
-                scaledRect.top = (rect.top * hFactor)
-                scaledRect.right = (rect.right * wFactor)
-                scaledRect.bottom = (rect.bottom * hFactor)
-            }
-
+            scaledRect.left = (rect.left * wFactor)
+            scaledRect.top = (rect.top * hFactor)
+            scaledRect.right = (rect.right * wFactor)
+            scaledRect.bottom = (rect.bottom * hFactor)
 
             return scaledRect
         }

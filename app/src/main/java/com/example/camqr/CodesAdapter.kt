@@ -49,9 +49,6 @@ class CodesAdapter(private val context: Context,
         // Get subtitle element
         val valueTextView = rowView.findViewById(R.id.history_list_value) as TextView
 
-        // Get color elem
-        val colorBarView = rowView.findViewById(R.id.color_bar_view) as View
-
         // Get buttons
         val copyBtn = rowView.findViewById(R.id.copy_btn) as Button
         val shareBtn = rowView.findViewById(R.id.share_btn) as Button

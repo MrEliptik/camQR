@@ -21,13 +21,9 @@ public class DrawView extends View {
 
     private Bitmap mBitmap;
     private Canvas mCanvas;
-    private Path mPath;
     private Paint mBitmapPaint;
-    private Paint mPaint;
     private Paint mRectPaint;
     private ArrayList<RectF> rectanglesList = new ArrayList<>();
-    private ArrayList<Integer> colorsList = new ArrayList<>();
-    private float drawPoints[];
 
     public DrawView(Context c,  AttributeSet attrs) {
         super(c, attrs);
@@ -70,13 +66,11 @@ public class DrawView extends View {
 
     public void clearRectangles() {
         rectanglesList.clear();
-        colorsList.clear();
         invalidate();
     }
 
-    public void setRectangles(RectF r, int c) {
+    public void setRectangles(RectF r) {
         rectanglesList.add(r);
-        colorsList.add(c);
         invalidate();
     }
 

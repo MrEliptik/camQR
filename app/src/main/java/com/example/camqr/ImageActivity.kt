@@ -261,7 +261,7 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                             (scaledRect.bottom + posInImageView!![1])
                         )
 
-                        drawAreaImage.setRectangles(offsetScaledRect, color)
+                        drawAreaImage.setRectangles(offsetScaledRect)
                     }
                 }
             }
