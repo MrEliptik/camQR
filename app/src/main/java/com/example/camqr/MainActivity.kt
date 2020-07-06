@@ -7,10 +7,8 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.Rect
-import android.graphics.RectF
+import android.graphics.*
+import android.media.ExifInterface
 import android.media.Image
 import android.os.Bundle
 import android.util.Log
@@ -26,6 +24,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
+import androidx.camera.core.Camera
 import androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -37,9 +36,11 @@ import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
+import kotlinx.android.synthetic.main.activity_image.*
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.random.Random
@@ -401,20 +402,35 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                                         }
                                     }
 
-                                    val scaledRect = scaleRect(bounds!!, image)
-                                    val croppedBmp: Bitmap = Bitmap.createBitmap(
-                                        viewFinder.bitmap!!,
-                                        scaledRect!!.left.toInt(),
-                                        scaledRect!!.top.toInt(),
-                                        scaledRect!!.width().toInt(),
-                                        scaledRect!!.height().toInt()
-                                    )
+                                    // CameraX api should always return image as YUV_420_888
+                                    if (mediaImage.format == ImageFormat.YUV_420_888) {
 
-                                    entry.put("Image", croppedBmp)
+                                        val bitmap = mediaImage.toBitmap()
+                                        // -> Some device have the sensor in landscape mode
+                                        // meaning the image should be rotated for OCR
+                                        var rotatedBitmap : Bitmap? = null
+                                        when (imageProxy.imageInfo.rotationDegrees) {
+                                            90 -> rotatedBitmap = rotateImage(bitmap, 90F)
+                                            180 -> rotatedBitmap = rotateImage(bitmap, 180F)
+                                            270 -> rotatedBitmap = rotateImage(bitmap, 270F)
+                                            else -> rotatedBitmap = bitmap
+                                        }
+
+                                        val croppedBmp: Bitmap = Bitmap.createBitmap(
+                                            rotatedBitmap!!,
+                                            bounds!!.left,
+                                            bounds!!.top,
+                                            bounds!!.width(),
+                                            bounds!!.height()
+                                        )
+
+                                        entry.put("Image", croppedBmp)
+                                    }
+
                                     listCodes.put(entry)
                                     barcodesList.add(hash)
                                     adapter.notifyDataSetChanged()
-                                    val imageButton: ImageButton = (c as Activity).findViewById<View>(R.id.clear_btn) as ImageButton
+                                    val imageButton: ImageButton = c.findViewById<View>(R.id.clear_btn) as ImageButton
                                     imageButton.visibility = View.VISIBLE
                                 }
 
@@ -438,6 +454,39 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
             }
         }
 
+        private fun rotateImage(source: Bitmap, angle: Float): Bitmap? {
+            val matrix = Matrix()
+            matrix.postRotate(angle)
+            return Bitmap.createBitmap(
+                source, 0, 0, source.width, source.height,
+                matrix, true
+            )
+        }
+
+        fun Image.toBitmap(): Bitmap {
+            val yBuffer = planes[0].buffer // Y
+            val uBuffer = planes[1].buffer // U
+            val vBuffer = planes[2].buffer // V
+
+            val ySize = yBuffer.remaining()
+            val uSize = uBuffer.remaining()
+            val vSize = vBuffer.remaining()
+
+            val nv21 = ByteArray(ySize + uSize + vSize)
+
+            //U and V are swapped
+            yBuffer.get(nv21, 0, ySize)
+            vBuffer.get(nv21, ySize, vSize)
+            uBuffer.get(nv21, ySize + vSize, uSize)
+
+            val yuvImage = YuvImage(nv21, ImageFormat.NV21, this.width, this.height, null)
+            val out = ByteArrayOutputStream()
+            yuvImage.compressToJpeg(Rect(0, 0, yuvImage.width, yuvImage.height), 50, out)
+            val imageBytes = out.toByteArray()
+            return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        }
+
+
         private fun decodeFormat(format: Int): String? {
             return when (format) {
                 Barcode.FORMAT_CODE_128 -> "CODE 128"
@@ -455,6 +504,20 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                 Barcode.FORMAT_AZTEC -> "AZTEC"
                 else -> ""
             }
+        }
+
+        private fun scaleRectForBitmap(rect: Rect, image: InputImage): RectF {
+
+            val scaledRect = RectF(rect)
+
+            return scaledRect
+        }
+
+        private fun scaleRectForDrawing(rect: Rect, image: InputImage): RectF {
+
+            val scaledRect = RectF(rect)
+
+            return scaledRect
         }
 
         private fun scaleRect(rect: Rect, image: InputImage, offset: Boolean = false): RectF {
