@@ -1,4 +1,4 @@
-package com.example.camqr
+package com.victormeunier.camqr
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -29,6 +29,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.camqr.R
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScanner
@@ -77,7 +78,10 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                 startCamera()
             }
         } else {
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+            ActivityCompat.requestPermissions(this,
+                REQUIRED_PERMISSIONS,
+                REQUEST_CODE_PERMISSIONS
+            )
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -145,13 +149,17 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
 
         gallery_btn.setOnClickListener {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_SELECT_IMAGE_IN_ALBUM)
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    REQUEST_SELECT_IMAGE_IN_ALBUM
+                )
             }
             else{
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
                 intent.type = "image/*"
                 if (intent.resolveActivity(packageManager) != null) {
-                    startActivityForResult(intent, REQUEST_SELECT_IMAGE_IN_ALBUM)
+                    startActivityForResult(intent,
+                        REQUEST_SELECT_IMAGE_IN_ALBUM
+                    )
                 }
             }
         }
@@ -216,7 +224,15 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                 .setTargetRotation(viewFinder.display.rotation)
                 .build()
 
-            analyser = QRAnalyser(this, viewFinder, drawArea, codes_list_view, adapter, listCodes, scanner)
+            analyser = QRAnalyser(
+                this,
+                viewFinder,
+                drawArea,
+                codes_list_view,
+                adapter,
+                listCodes,
+                scanner
+            )
 
             // Image analysis
             imageAnalyzer = ImageAnalysis.Builder()
@@ -272,7 +288,7 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
         private const val SWIPE_THRESHOLD_VELOCITY = 200
     }
 
-    private class QRAnalyser(private val c: Context, private val viewFinder:PreviewView, private val drawArea:DrawView,
+    private class QRAnalyser(private val c: Context, private val viewFinder:PreviewView, private val drawArea: DrawView,
                              private var codes_list_view: ListView, private var adapter: CodesAdapter,
                              private var listCodes: JSONArray, private val scanner: BarcodeScanner)
         : ImageAnalysis.Analyzer {
@@ -289,7 +305,9 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                 // Pass image to an ML Kit Vision API
                 val result = scanner.process(image)
                         .addOnSuccessListener { barcodes ->
-                            val textView: TextView = (c as Activity).findViewById<View>(R.id.helper) as TextView
+                            val textView: TextView = (c as Activity).findViewById<View>(
+                                R.id.helper
+                            ) as TextView
 
                             // Clear previous rectangles and codes
                             drawArea.clearRectangles()
@@ -424,7 +442,9 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                                     listCodes.put(entry)
                                     barcodesList.add(hash)
                                     adapter.notifyDataSetChanged()
-                                    val imageButton: ImageButton = c.findViewById<View>(R.id.clear_btn) as ImageButton
+                                    val imageButton: ImageButton = c.findViewById<View>(
+                                        R.id.clear_btn
+                                    ) as ImageButton
                                     imageButton.visibility = View.VISIBLE
                                 }
 
@@ -439,7 +459,9 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                         .addOnFailureListener {
                             // Task failed with an exception
                             Log.d("CODE", it.toString())
-                            val textView: TextView = (c as Activity).findViewById<View>(R.id.helper) as TextView
+                            val textView: TextView = (c as Activity).findViewById<View>(
+                                R.id.helper
+                            ) as TextView
                             textView.visibility = View.VISIBLE
                             val imageButton: ImageButton = c.findViewById<View>(R.id.clear_btn) as ImageButton
                             imageButton.visibility = View.INVISIBLE
@@ -529,10 +551,14 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
         fun clearElement(pos: Int, view: View?, direction: String) {
             var animation: Animation
             if (direction == "left"){
-                animation = AnimationUtils.loadAnimation(c, R.anim.slide_left)
+                animation = AnimationUtils.loadAnimation(c,
+                    R.anim.slide_left
+                )
             }
             else{
-                animation = AnimationUtils.loadAnimation(c, R.anim.slide_right)
+                animation = AnimationUtils.loadAnimation(c,
+                    R.anim.slide_right
+                )
             }
             animation.setAnimationListener(object : Animation.AnimationListener {
                 override fun onAnimationStart(animation: Animation?) {}
@@ -544,9 +570,13 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                     barcodesList.removeAt(pos)
                     adapter.notifyDataSetChanged()
                     if (barcodesList.size == 0) {
-                        val textView: TextView = (c as Activity).findViewById<View>(R.id.helper) as TextView
+                        val textView: TextView = (c as Activity).findViewById<View>(
+                            R.id.helper
+                        ) as TextView
                         textView.visibility = View.VISIBLE
-                        val imageButton: ImageButton = (c as Activity).findViewById<View>(R.id.clear_btn) as ImageButton
+                        val imageButton: ImageButton = (c as Activity).findViewById<View>(
+                            R.id.clear_btn
+                        ) as ImageButton
                         imageButton.visibility = View.INVISIBLE
                     }
                 }
@@ -591,12 +621,14 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
             val item = adapter.getItem(idx) as JSONObject
             // right to left swipe
             if (p0!!.x - p1!!.x > SWIPE_MIN_DISTANCE
-                && Math.abs(p2) > SWIPE_THRESHOLD_VELOCITY) {
+                && Math.abs(p2) > SWIPE_THRESHOLD_VELOCITY
+            ) {
                 analyser.clearElement(idx, getViewByPosition(idx, codes_list_view), "left")
             }
             // left to right swipe
             else if (p1.x - p0.x > SWIPE_MIN_DISTANCE
-                && Math.abs(p2) > SWIPE_THRESHOLD_VELOCITY) {
+                && Math.abs(p2) > SWIPE_THRESHOLD_VELOCITY
+            ) {
                 analyser.clearElement(idx, getViewByPosition(idx, codes_list_view), "right")
             }
 

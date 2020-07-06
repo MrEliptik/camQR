@@ -1,4 +1,4 @@
-package com.example.camqr
+package com.victormeunier.camqr
 
 import android.app.Activity
 import android.content.Intent
@@ -16,6 +16,7 @@ import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.camqr.R
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScanner
@@ -288,10 +289,14 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
     fun clearElement(pos: Int, view: View?, direction: String) {
         var animation: Animation
         if (direction == "left"){
-            animation = AnimationUtils.loadAnimation(this, R.anim.slide_left)
+            animation = AnimationUtils.loadAnimation(this,
+                R.anim.slide_left
+            )
         }
         else{
-            animation = AnimationUtils.loadAnimation(this, R.anim.slide_right)
+            animation = AnimationUtils.loadAnimation(this,
+                R.anim.slide_right
+            )
         }
         animation.setAnimationListener(object : Animation.AnimationListener {
             override fun onAnimationStart(animation: Animation?) {}

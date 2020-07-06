@@ -1,4 +1,4 @@
-package com.example.camqr;
+package com.victormeunier.camqr;
 
 import android.content.Context;
 import android.graphics.Bitmap;

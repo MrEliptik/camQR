@@ -17,9 +17,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".AboutActivity"
+        <activity android:name="com.victormeunier.camqr.AboutActivity"
             android:label="@string/aboutActivity"></activity>
-        <activity android:name=".ImageActivity"
+        <activity android:name="com.victormeunier.camqr.ImageActivity"
             android:label="@string/imageActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -29,8 +29,8 @@
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
-        <activity android:name=".WebviewActivity" />
-        <activity android:name=".MainActivity">
+        <activity android:name="com.victormeunier.camqr.WebviewActivity" />
+        <activity android:name="com.victormeunier.camqr.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

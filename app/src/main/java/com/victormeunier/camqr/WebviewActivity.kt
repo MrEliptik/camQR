@@ -1,10 +1,11 @@
-package com.example.camqr
+package com.victormeunier.camqr
 
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.camqr.R
 import kotlinx.android.synthetic.main.activity_webview.*
 
 

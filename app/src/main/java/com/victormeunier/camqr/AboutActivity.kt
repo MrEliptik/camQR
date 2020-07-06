@@ -1,4 +1,4 @@
-package com.example.camqr
+package com.victormeunier.camqr
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.example.camqr.R
 import kotlinx.android.synthetic.main.activity_about.*
 
 class AboutActivity : AppCompatActivity() {

@@ -1,4 +1,4 @@
-package com.example.camqr
+package com.victormeunier.camqr
 
 import android.app.SearchManager
 import android.content.ClipData
@@ -19,6 +19,7 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.*
+import com.example.camqr.R
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.Barcode.WiFi.*

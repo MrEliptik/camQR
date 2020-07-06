@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ImageActivity"
+    tools:context="com.victormeunier.camqr.ImageActivity"
     android:background="#E4E4E4"
     android:id="@+id/main_image_layout">
 
@@ -14,7 +14,7 @@
         android:layout_height="match_parent"
         android:scaleType="centerInside" />
 
-    <com.example.camqr.DrawView
+    <com.victormeunier.camqr.DrawView
         android:id="@+id/drawAreaImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
