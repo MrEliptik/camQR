@@ -17,10 +17,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".ImageActivity">
+        <activity android:name=".AboutActivity"
+            android:label="@string/aboutActivity"></activity>
+        <activity android:name=".ImageActivity"
+            android:label="@string/imageActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
@@ -28,6 +33,7 @@
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

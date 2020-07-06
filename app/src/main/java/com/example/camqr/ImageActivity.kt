@@ -8,9 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
-import android.view.GestureDetector
-import android.view.MotionEvent
-import android.view.View
+import android.view.*
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ImageButton
@@ -41,7 +39,7 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        actionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         setContentView(R.layout.activity_image)
 
@@ -101,6 +99,22 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return when (item?.itemId) {
+            R.id.action_about -> {
+                val myIntent = Intent(applicationContext, AboutActivity::class.java)
+                startActivityForResult(myIntent, 0)
+                true
+            }
+            else -> false
+        }
     }
 
     private fun handleSendImage(intent: Intent) {

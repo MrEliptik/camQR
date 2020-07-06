@@ -89,6 +89,19 @@
         app:layout_constraintVertical_bias="0.015" />
 
     <ImageButton
+        android:id="@+id/info_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#00ffffff"
+        android:src="@drawable/info_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.96"
+        app:layout_constraintStart_toStartOf="@+id/frameLayout"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.015" />
+
+    <ImageButton
         android:id="@+id/gallery_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

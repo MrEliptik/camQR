@@ -156,6 +156,11 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
             }
         }
 
+        info_btn.setOnClickListener {
+            val myIntent = Intent(this, AboutActivity::class.java)
+            startActivity(myIntent)
+        }
+
         val detector = GestureDetector(this, this)
         codes_list_view.setOnTouchListener { view, e ->
             detector.onTouchEvent(e)

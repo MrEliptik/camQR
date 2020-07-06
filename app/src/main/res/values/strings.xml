@@ -1,3 +1,23 @@
 <resources>
     <string name="app_name">CamQR</string>
+    <string name="about_me">About me</string>
+    <string name="dev">Developper</string>
+    <string name="dev_github">github.com/MrEliptik</string>
+    <string name="website">Website</string>
+    <string name="dev_website">www.victormeunier.com</string>
+    <string name="contact">Contact me</string>
+    <string name="support_title">Support me</string>
+    <string name="feedback">Give feedback</string>
+    <string name="rate_title">Rate this app</string>
+    <string name="share_app">Share this app</string>
+    <string name="buy_me_coffee">"Buy me a coffee ☕"</string>
+    <string name="donate_paypal">Donate on PayPal</string>
+    <string name="app_title">Application</string>
+    <string name="version">Version</string>
+    <string name="app_version">1.0</string>
+    <string name="sources">Sources</string>
+    <string name="icon_ref">Icons</string>
+    <string name="checkout_app">Checkout CamQR</string>
+    <string name="aboutActivity">About</string>
+    <string name="imageActivity">Image File</string>
 </resources>
