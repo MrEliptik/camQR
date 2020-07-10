@@ -318,6 +318,7 @@
                 android:layout_marginRight="20dp"
                 android:background="#26F3F3F3" />
 
+            <!--
             <LinearLayout
                 android:id="@+id/coffee"
                 android:layout_width="match_parent"
@@ -381,6 +382,7 @@
                     android:src="@drawable/arrow_right_24"
                     android:tint="#087FB5" />
             </LinearLayout>
+            -->
 
             <View
                 android:layout_width="match_parent"

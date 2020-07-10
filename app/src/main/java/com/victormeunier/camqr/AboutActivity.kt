@@ -20,8 +20,8 @@ class AboutActivity : AppCompatActivity() {
         rate.setOnClickListener { rateMyApp() }
         share.setOnClickListener { shareMyApp() }
         feedback.setOnClickListener { emailFeedBack() }
-        coffee.setOnClickListener { followLink("https://buymeacoff.ee/mreliptik") }
-        paypal.setOnClickListener { followLink("https://paypal.me/VictorMeunier") }
+        //coffee.setOnClickListener { followLink("https://buymeacoff.ee/mreliptik") }
+        //paypal.setOnClickListener { followLink("https://paypal.me/VictorMeunier") }
 
         val pInfo: PackageInfo = applicationContext.packageManager.getPackageInfo(packageName, 0)
         version_number.text = pInfo.versionName
