@@ -107,7 +107,7 @@ class ImageActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item?.itemId) {
             R.id.action_about -> {
                 val myIntent = Intent(applicationContext, AboutActivity::class.java)

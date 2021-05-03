@@ -349,12 +349,13 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                                         imageAnalysisHeight = rotatedBitmap!!.height
                                         imageAnalysisWidth = rotatedBitmap!!.width
                                     }
+
                                     val croppedBmp: Bitmap = Bitmap.createBitmap(
                                         rotatedBitmap!!,
-                                        bounds!!.left,
-                                        bounds!!.top,
-                                        bounds!!.width(),
-                                        bounds!!.height()
+                                        bounds!!.left.coerceIn(0, codes_list_view.width),
+                                        bounds!!.top.coerceIn(0, codes_list_view.height),
+                                        bounds!!.width().coerceIn(0, codes_list_view.width),
+                                        bounds!!.height().coerceIn(0, codes_list_view.height)
                                     )
                                     entry.put("Image", croppedBmp)
 

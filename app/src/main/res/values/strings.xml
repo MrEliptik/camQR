@@ -19,5 +19,5 @@
     <string name="icon_ref">Icons</string>
     <string name="checkout_app">Checkout CamQR</string>
     <string name="aboutActivity">About</string>
-    <string name="imageActivity">Image File</string>
+    <string name="imageActivity">Detect QR</string>
 </resources>

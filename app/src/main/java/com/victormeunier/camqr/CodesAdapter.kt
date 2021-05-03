@@ -10,7 +10,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
-import android.os.Bundle
 import android.provider.CalendarContract
 import android.provider.ContactsContract
 import android.view.LayoutInflater
@@ -19,6 +18,7 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.*
+import androidx.core.content.ContextCompat.startActivity
 import com.example.camqr.R
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.Barcode
@@ -27,8 +27,9 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 
-class CodesAdapter(private val context: Context,
-                     private val dataSource: JSONArray
+class CodesAdapter(
+    private val context: Context,
+    private val dataSource: JSONArray
 ) : BaseAdapter() {
 
     private val inflater: LayoutInflater
@@ -148,7 +149,11 @@ class CodesAdapter(private val context: Context,
 
                     // only for Q and newer versions
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                        Toast.makeText(context, "Unable to connect to WiFi using Android Q or above", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            context,
+                            "Unable to connect to WiFi using Android Q or above",
+                            Toast.LENGTH_LONG
+                        ).show()
                         /*
                         val specifier: NetworkSpecifier = WifiNetworkSpecifier.Builder()
                                 .setSsidPattern(PatternMatcher(ssid, PatternMatcher.PATTERN_PREFIX))
@@ -199,13 +204,12 @@ class CodesAdapter(private val context: Context,
                         }
                         connectivityManager.requestNetwork(request, networkCallback)
                         */
-                    }
-                    else {
+                    } else {
                         val wifiConfig = WifiConfiguration()
                         wifiConfig.SSID = java.lang.String.format("\"%s\"", ssid)
 
                         // Check password type
-                        when(type) {
+                        when (type) {
                             TYPE_OPEN -> {
                                 wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
                             }
@@ -233,8 +237,16 @@ class CodesAdapter(private val context: Context,
                     gotoBtn.text = "Browse"
 
                     val title = item.get("Title") as String
-                    val url = item.get("Url") as String
+                    var url = item.get("Url") as String
 
+                    if (!url.startsWith("http://") && !url.startsWith("https://"))
+                        url = "http://" + url
+
+                    val browserIntent =
+                        Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    context.startActivity(browserIntent)
+
+                    /*
                     val intent = Intent(context, WebviewActivity::class.java)
                     val b = Bundle()
                     b.putString("url", url) //Your id
@@ -246,6 +258,7 @@ class CodesAdapter(private val context: Context,
                     else{
                         Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
                     }
+                    */
                 }
                 Barcode.TYPE_CONTACT_INFO -> {
                     gotoBtn.text = "Add contact"
@@ -272,9 +285,12 @@ class CodesAdapter(private val context: Context,
 
                     if (intent.resolveActivity(context.packageManager) != null) {
                         context.startActivity(intent)
-                    }
-                    else{
-                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "No application available for that",
+                            Toast.LENGTH_LONG
+                        )
                     }
                 }
                 Barcode.TYPE_CALENDAR_EVENT -> {
@@ -301,9 +317,12 @@ class CodesAdapter(private val context: Context,
 
                     if (intent.resolveActivity(context.packageManager) != null) {
                         context.startActivity(intent)
-                    }
-                    else{
-                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "No application available for that",
+                            Toast.LENGTH_LONG
+                        )
                     }
                 }
                 Barcode.TYPE_EMAIL -> {
@@ -323,9 +342,12 @@ class CodesAdapter(private val context: Context,
 
                     if (intent.resolveActivity(context.packageManager) != null) {
                         context.startActivity(intent)
-                    }
-                    else{
-                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "No application available for that",
+                            Toast.LENGTH_LONG
+                        )
                     }
                 }
                 Barcode.TYPE_GEO -> {
@@ -336,16 +358,20 @@ class CodesAdapter(private val context: Context,
 
                     //val navigationIntentUri: Uri = Uri.parse("google.navigation:q=$lat,$lng") //creating intent with latlng
                     //val navigationIntentUri: Uri = Uri.parse("geo:$lat,$lng") //creating intent with latlng
-                    val navigationIntentUri: Uri = Uri.parse("geo:$lat,$lng?q=${Uri.encode("$lat,$lng")}")
+                    val navigationIntentUri: Uri =
+                        Uri.parse("geo:$lat,$lng?q=${Uri.encode("$lat,$lng")}")
 
                     val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
                     //mapIntent.setPackage("com.google.android.apps.maps")
 
                     if (mapIntent.resolveActivity(context.packageManager) != null) {
                         context.startActivity(mapIntent)
-                    }
-                    else{
-                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "No application available for that",
+                            Toast.LENGTH_LONG
+                        )
                     }
 
                 }
@@ -358,9 +384,12 @@ class CodesAdapter(private val context: Context,
 
                     if (intent.resolveActivity(context.packageManager) != null) {
                         context.startActivity(intent)
-                    }
-                    else{
-                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "No application available for that",
+                            Toast.LENGTH_LONG
+                        )
                     }
                 }
                 Barcode.TYPE_SMS -> {
@@ -375,9 +404,12 @@ class CodesAdapter(private val context: Context,
 
                     if (it.resolveActivity(context.packageManager) != null) {
                         context.startActivity(it)
-                    }
-                    else{
-                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "No application available for that",
+                            Toast.LENGTH_LONG
+                        )
                     }
                 }
                 Barcode.TYPE_TEXT, Barcode.TYPE_PRODUCT -> {
@@ -389,9 +421,12 @@ class CodesAdapter(private val context: Context,
 
                     if (intent.resolveActivity(context.packageManager) != null) {
                         context.startActivity(intent)
-                    }
-                    else{
-                        Toast.makeText(context, "No application available for that", Toast.LENGTH_LONG)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "No application available for that",
+                            Toast.LENGTH_LONG
+                        )
                     }
                 }
             }
