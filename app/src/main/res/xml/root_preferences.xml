@@ -1,0 +1,13 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/general">
+
+        <SwitchPreferenceCompat
+            app:key="history"
+            app:title="@string/history_pref_title"
+            app:enabled="true"
+            app:defaultValue="true" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

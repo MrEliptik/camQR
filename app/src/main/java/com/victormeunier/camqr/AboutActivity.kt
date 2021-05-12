@@ -20,8 +20,6 @@ class AboutActivity : AppCompatActivity() {
         rate.setOnClickListener { rateMyApp() }
         share.setOnClickListener { shareMyApp() }
         feedback.setOnClickListener { emailFeedBack() }
-        //coffee.setOnClickListener { followLink("https://buymeacoff.ee/mreliptik") }
-        //paypal.setOnClickListener { followLink("https://paypal.me/VictorMeunier") }
 
         val pInfo: PackageInfo = applicationContext.packageManager.getPackageInfo(packageName, 0)
         version_number.text = pInfo.versionName
@@ -57,7 +55,7 @@ class AboutActivity : AppCompatActivity() {
     private fun shareMyApp() {
         val sharingIntent = Intent(Intent.ACTION_SEND)
         sharingIntent.type = "text/plain"
-        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "CamText, photo OCR app")
+        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "CamQR, decoding app")
         val appName = applicationContext.packageName
         sharingIntent.putExtra(Intent.EXTRA_TEXT, resources.getString(R.string.checkout_app) + ": http://play.google.com/store/apps/details?id=$appName")
         startActivity(Intent.createChooser(sharingIntent, "Share via"))
@@ -69,7 +67,7 @@ class AboutActivity : AppCompatActivity() {
                 "mailto", "victormeunier.dev@gmail.com", null
             )
         )
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "I'm contacting your from CamText..")
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "I'm contacting your from CamQR..")
         emailIntent.putExtra(Intent.EXTRA_TEXT, "")
         startActivity(Intent.createChooser(emailIntent, "Send email"))
     }
@@ -81,7 +79,7 @@ class AboutActivity : AppCompatActivity() {
                 "mailto", "victormeunier.dev@gmail.com", null
             )
         )
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Feedback on CamText Android app")
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Feedback on CamQR Android app")
         emailIntent.putExtra(Intent.EXTRA_TEXT, "Hey, here's some feedback on your CamText Android app..")
         startActivity(Intent.createChooser(emailIntent, "Send email"))
     }

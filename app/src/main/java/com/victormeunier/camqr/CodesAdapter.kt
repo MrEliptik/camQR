@@ -7,18 +7,19 @@ import android.content.Context
 import android.content.Context.WIFI_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.provider.CalendarContract
 import android.provider.ContactsContract
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.*
-import androidx.core.content.ContextCompat.startActivity
 import com.example.camqr.R
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.Barcode
@@ -62,7 +63,7 @@ class CodesAdapter(
         val item = getItem(position) as JSONObject
 
         try{
-            val image = item.get("Image") as Bitmap?
+            val image = decodeBase64(item.get("Image") as String)
             imageThumbnail.setImageBitmap(image)
         }
         catch (e: Exception){
@@ -76,39 +77,39 @@ class CodesAdapter(
 
         when (qrType) {
             Barcode.TYPE_WIFI -> {
-                gotoBtn.text = "Connect"
+                gotoBtn.text = context.getString(R.string.connect)
                 qrTypeIcon.setImageResource(R.drawable.wifi_24)
             }
             Barcode.TYPE_URL -> {
-                gotoBtn.text = "Browse"
+                gotoBtn.text = context.getString(R.string.browse)
                 qrTypeIcon.setImageResource(R.drawable.url_24)
             }
             Barcode.TYPE_CONTACT_INFO -> {
-                gotoBtn.text = "Add contact"
+                gotoBtn.text = context.getString(R.string.add_contact)
                 qrTypeIcon.setImageResource(R.drawable.contact_24)
             }
             Barcode.TYPE_CALENDAR_EVENT -> {
-                gotoBtn.text = "Add event"
+                gotoBtn.text = context.getString(R.string.add_event)
                 qrTypeIcon.setImageResource(R.drawable.calendar_24)
             }
             Barcode.TYPE_EMAIL -> {
-                gotoBtn.text = "Send email"
+                gotoBtn.text = context.getString(R.string.send_email)
                 qrTypeIcon.setImageResource(R.drawable.email_24)
             }
             Barcode.TYPE_GEO -> {
-                gotoBtn.text = "Navigate"
+                gotoBtn.text = context.getString(R.string.navigate)
                 qrTypeIcon.setImageResource(R.drawable.geo_24)
             }
             Barcode.TYPE_PHONE -> {
-                gotoBtn.text = "Dial"
+                gotoBtn.text = context.getString(R.string.dial)
                 qrTypeIcon.setImageResource(R.drawable.phone_24)
             }
             Barcode.TYPE_SMS -> {
-                gotoBtn.text = "SMS"
+                gotoBtn.text = context.getString(R.string.sms)
                 qrTypeIcon.setImageResource(R.drawable.sms_24)
             }
             Barcode.TYPE_TEXT, Barcode.TYPE_PRODUCT -> {
-                gotoBtn.text = "Search web"
+                gotoBtn.text = context.getString(R.string.web_search)
                 qrTypeIcon.setImageResource(R.drawable.text_24)
             }
         }
@@ -126,7 +127,7 @@ class CodesAdapter(
             copyBtn.invalidate()
 
 
-            Snackbar.make(rowView, "Copied to clipboard!", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(rowView, context.getString(R.string.clipboard_copied), Snackbar.LENGTH_SHORT).show()
         }
 
         shareBtn.setOnClickListener {
@@ -151,7 +152,7 @@ class CodesAdapter(
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                         Toast.makeText(
                             context,
-                            "Unable to connect to WiFi using Android Q or above",
+                            context.getString(R.string.cant_connect_wifi),
                             Toast.LENGTH_LONG
                         ).show()
                         /*
@@ -288,7 +289,7 @@ class CodesAdapter(
                     } else {
                         Toast.makeText(
                             context,
-                            "No application available for that",
+                            context.getString(R.string.no_app),
                             Toast.LENGTH_LONG
                         )
                     }
@@ -320,7 +321,7 @@ class CodesAdapter(
                     } else {
                         Toast.makeText(
                             context,
-                            "No application available for that",
+                            context.getString(R.string.no_app),
                             Toast.LENGTH_LONG
                         )
                     }
@@ -345,7 +346,7 @@ class CodesAdapter(
                     } else {
                         Toast.makeText(
                             context,
-                            "No application available for that",
+                            context.getString(R.string.no_app),
                             Toast.LENGTH_LONG
                         )
                     }
@@ -369,7 +370,7 @@ class CodesAdapter(
                     } else {
                         Toast.makeText(
                             context,
-                            "No application available for that",
+                            context.getString(R.string.no_app),
                             Toast.LENGTH_LONG
                         )
                     }
@@ -387,7 +388,7 @@ class CodesAdapter(
                     } else {
                         Toast.makeText(
                             context,
-                            "No application available for that",
+                            context.getString(R.string.no_app),
                             Toast.LENGTH_LONG
                         )
                     }
@@ -407,7 +408,7 @@ class CodesAdapter(
                     } else {
                         Toast.makeText(
                             context,
-                            "No application available for that",
+                            context.getString(R.string.no_app),
                             Toast.LENGTH_LONG
                         )
                     }
@@ -424,7 +425,7 @@ class CodesAdapter(
                     } else {
                         Toast.makeText(
                             context,
-                            "No application available for that",
+                            context.getString(R.string.no_app),
                             Toast.LENGTH_LONG
                         )
                     }
@@ -437,6 +438,12 @@ class CodesAdapter(
         rowView.startAnimation(anim)
 
         return rowView
+    }
+
+    fun decodeBase64(input: String?): Bitmap? {
+        val decodedByte: ByteArray = Base64.decode(input, 0)
+        return BitmapFactory
+            .decodeByteArray(decodedByte, 0, decodedByte.size)
     }
 
     override fun getItem(position: Int): Any {

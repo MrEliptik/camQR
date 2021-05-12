@@ -4,23 +4,24 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.media.Image
+import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.util.Size
 import android.view.GestureDetector
+import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.widget.ImageButton
-import android.widget.ListView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.core.Camera
@@ -29,6 +30,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.preference.PreferenceManager
 import com.example.camqr.R
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.Barcode
@@ -165,14 +167,72 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
         }
 
         info_btn.setOnClickListener {
-            val myIntent = Intent(this, AboutActivity::class.java)
-            startActivity(myIntent)
+            showOptions(it)
         }
 
         val detector = GestureDetector(this, this)
         codes_list_view.setOnTouchListener { view, e ->
             detector.onTouchEvent(e)
             false
+        }
+    }
+
+    private fun showOptions(v: View) {
+        PopupMenu(this, v).apply {
+            setOnMenuItemClickListener(object: PopupMenu.OnMenuItemClickListener {
+                override fun onMenuItemClick(item: MenuItem?): Boolean {
+                    return when (item?.itemId) {
+
+                        R.id.action_options -> {
+                            Log.d("MENU", "OPTIONS")
+                            val myIntent = Intent(applicationContext, SettingsActivity::class.java)
+                            startActivityForResult(myIntent, 0)
+                            true
+                        }
+                        R.id.action_history -> {
+                            Log.d("MENU", "HISTORY")
+                            val myIntent = Intent(applicationContext, HistoryActivity::class.java)
+                            startActivityForResult(myIntent, 0)
+                            true
+                        }
+                        R.id.action_about -> {
+                            val myIntent = Intent(applicationContext, AboutActivity::class.java)
+                            startActivityForResult(myIntent, 0)
+                            true
+                        }
+                        R.id.action_rate -> {
+                            rateMyApp()
+                            true
+                        }
+                        else -> false
+                    }
+                }
+
+            })
+            inflate(R.menu.option_menu)
+            show()
+        }
+    }
+
+    private fun rateMyApp() {
+        val uri: Uri = Uri.parse("market://details?id=" + applicationContext.packageName)
+        val goToMarket = Intent(Intent.ACTION_VIEW, uri)
+        // To count with Play market backstack, After pressing back button,
+        // to taken back to our application, we need to add following flags to intent.
+        goToMarket.addFlags(
+            Intent.FLAG_ACTIVITY_NO_HISTORY or
+                    Intent.FLAG_ACTIVITY_NEW_DOCUMENT or
+                    Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+        )
+        try {
+            startActivity(goToMarket)
+        } catch (e: ActivityNotFoundException) {
+            startActivity(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("http://play.google.com/store/apps/details?id=" + applicationContext.packageName)
+                )
+            )
         }
     }
 
@@ -357,7 +417,7 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                                         bounds!!.width().coerceIn(0, codes_list_view.width),
                                         bounds!!.height().coerceIn(0, codes_list_view.height)
                                     )
-                                    entry.put("Image", croppedBmp)
+                                    entry.put("Image", encodeTobase64(croppedBmp))
 
                                     // See API reference for complete list of supported types
                                     when (barcode.valueType) {
@@ -439,6 +499,10 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                                             val txt = barcode.rawValue
                                         }
                                     }
+                                    val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(c)
+                                    if (sharedPreferences.getBoolean("history", true)){
+                                        addHistoryItem(entry)
+                                    }
 
                                     listCodes.put(entry)
                                     barcodesList.add(hash)
@@ -469,6 +533,15 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
                             imageProxy.close()
                         }
             }
+        }
+
+        fun encodeTobase64(image: Bitmap): String? {
+            val baos = ByteArrayOutputStream()
+            image.compress(Bitmap.CompressFormat.PNG, 100, baos)
+            val b: ByteArray = baos.toByteArray()
+            val imageEncoded: String = Base64.encodeToString(b, Base64.DEFAULT)
+            Log.d("Image Log:", imageEncoded)
+            return imageEncoded
         }
 
         private fun rotateImage(source: Bitmap, angle: Float): Bitmap? {
@@ -535,6 +608,31 @@ class MainActivity : AppCompatActivity(), GestureDetector.OnGestureListener {
             scaledRect.bottom = (rect.bottom * hFactor)
 
             return scaledRect
+        }
+
+        private fun addHistoryItem(entry: JSONObject) {
+            var json = JSONArray()
+
+            val sharedPref = c.getSharedPreferences("appData", Context.MODE_PRIVATE)
+            val prefEditor = sharedPref.edit()
+
+            // Retrieve values from preferences
+            val str: String? = sharedPref.getString("history", null)
+            // Prefs exist, we override the json
+            if (str != null) {
+                json = JSONArray(str)
+            }
+
+            // Check if the same hash is already present
+            // if there is, we don't save it
+            for (i in 0 until json.length()) {
+                val item = json.getJSONObject(i)
+                if (item.get("Hash") as Int == entry.get("Hash") as Int) return
+            }
+
+            json.put(entry)
+            prefEditor.putString("history", json.toString())
+            prefEditor.apply() // handle writing in the background
         }
 
         fun clearList() {

@@ -17,10 +17,18 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name="com.victormeunier.camqr.AboutActivity"
-            android:label="@string/aboutActivity"></activity>
-        <activity android:name="com.victormeunier.camqr.ImageActivity"
-            android:label="@string/imageActivity" >
+        <activity
+            android:name="com.victormeunier.camqr.SettingsActivity"
+            android:label="@string/title_activity_settings"></activity>
+        <activity
+            android:name="com.victormeunier.camqr.HistoryActivity"
+            android:label="@string/history" />
+        <activity
+            android:name="com.victormeunier.camqr.AboutActivity"
+            android:label="@string/aboutActivity" />
+        <activity
+            android:name="com.victormeunier.camqr.ImageActivity"
+            android:label="@string/imageActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 

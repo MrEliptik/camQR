@@ -41,7 +41,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.98"
-        android:text="Point your camera at a barcode"
+        android:text="@string/point_your_camera_at_a_barcode"
         android:textColor="#ffffff"
         android:textAlignment="center"
         android:textSize="15sp"/>

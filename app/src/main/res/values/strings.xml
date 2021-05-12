@@ -1,23 +1,55 @@
 <resources>
-    <string name="app_name">CamQR</string>
+    <string name="app_name" translatable="false">CamQR</string>
     <string name="about_me">About me</string>
     <string name="dev">Developper</string>
-    <string name="dev_github">github.com/MrEliptik</string>
+    <string name="dev_github" translatable="false">github.com/MrEliptik</string>
     <string name="website">Website</string>
-    <string name="dev_website">www.victormeunier.com</string>
+    <string name="dev_website" translatable="false">www.victormeunier.com</string>
     <string name="contact">Contact me</string>
     <string name="support_title">Support me</string>
     <string name="feedback">Give feedback</string>
     <string name="rate_title">Rate this app</string>
     <string name="share_app">Share this app</string>
-    <string name="buy_me_coffee">"Buy me a coffee ☕"</string>
-    <string name="donate_paypal">Donate on PayPal</string>
     <string name="app_title">Application</string>
     <string name="version">Version</string>
-    <string name="app_version">1.0</string>
+    <string name="app_version" translatable="false">1.2</string>
     <string name="sources">Sources</string>
     <string name="icon_ref">Icons</string>
     <string name="checkout_app">Checkout CamQR</string>
     <string name="aboutActivity">About</string>
     <string name="imageActivity">Detect QR</string>
+    <string name="point_your_camera_at_a_barcode">Point your camera at a barcode</string>
+    <string name="format_type">FORMAT TYPE</string>
+    <string name="copy">Copy</string>
+    <string name="share">Share</string>
+    <string name="connect">Connect</string>
+    <string name="browse">Browse</string>
+    <string name="add_contact">Add contact</string>
+    <string name="add_event">Add event</string>
+    <string name="send_email">Send email</string>
+    <string name="navigate">Navigate</string>
+    <string name="dial">Dial</string>
+    <string name="sms">SMS</string>
+    <string name="web_search">Web search</string>
+    <string name="clipboard_copied">Copied to clipboard!</string>
+    <string name="cant_connect_wifi">Unable to connect to WiFi using Android Q or above</string>
+    <string name="no_app">No application available for that</string>
+    <string name="history_no_result">No history yet</string>
+    <string name="history">History</string>
+    <string name="options">Options</string>
+    <string name="about">About</string>
+    <string name="erase_history">Erase history</string>
+    <string name="msg_erase_history">Delete the codes history?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+
+    <!-- Messages Preferences -->
+
+    <!-- Sync Preferences -->
+    <string name="general">General</string>
+    <string name="history_pref_title">Keep codes history</string>
 </resources>

@@ -55,7 +55,7 @@
                     android:layout_weight="1"
                     android:textColor="#F1F0F0"
                     android:textSize="16sp"
-                    android:text="FORMAT TYPE"
+                    android:text="@string/format_type"
                     android:textStyle="bold" />
 
                 <ImageView
@@ -105,7 +105,7 @@
                 <Button
                     android:id="@+id/copy_btn"
                     android:drawableTop="@drawable/copy"
-                    android:text="Copy"
+                    android:text="@string/copy"
                     android:textSize="10sp"
                     android:textColor="#03A9F4"
                     android:layout_width="wrap_content"
@@ -117,7 +117,7 @@
                 <Button
                     android:id="@+id/share_btn"
                     android:drawableTop="@drawable/share"
-                    android:text="Share"
+                    android:text="@string/share"
                     android:textSize="10sp"
                     android:textColor="#03A9F4"
                     android:layout_width="wrap_content"
@@ -129,7 +129,7 @@
                 <Button
                     android:id="@+id/goto_btn"
                     android:drawableTop="@drawable/go_to"
-                    android:text="Browse"
+                    android:text="@string/browse"
                     android:textSize="10sp"
                     android:textColor="#03A9F4"
                     android:layout_width="wrap_content"

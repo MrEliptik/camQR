@@ -2,9 +2,14 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimary">#171717</item>
+        <item name="colorPrimaryDark">#1B1B1B</item>
         <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="SettingsFragmentStyle">
+        <item name="android:textColorSecondary">#8E8E8E</item>
+        <item name="android:textColor">#ECECEC</item>
     </style>
 
 </resources>

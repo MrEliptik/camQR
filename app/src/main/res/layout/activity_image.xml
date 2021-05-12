@@ -5,8 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.victormeunier.camqr.ImageActivity"
-    android:background="#E4E4E4"
-    android:id="@+id/main_image_layout">
+    android:id="@+id/main_image_layout"
+    android:background="#252525" >
 
     <ImageView
         android:id="@+id/image_view"

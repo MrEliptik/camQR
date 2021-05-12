@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_me">À propos de moi</string>
+    <string name="dev">Développeur</string>
+    <string name="website">Site web</string>
+    <string name="contact">Me contacter</string>
+    <string name="support_title">Me soutenir</string>
+    <string name="feedback">Faire un retour d\'expérience</string>
+    <string name="rate_title">Noter l\'application</string>
+    <string name="share_app">Partager l\'application</string>
+    <string name="app_title">Application</string>
+    <string name="version">Version</string>
+    <string name="sources">Sources</string>
+    <string name="icon_ref">Icônes</string>
+    <string name="checkout_app">Testez CamQR</string>
+    <string name="aboutActivity">À propos</string>
+    <string name="imageActivity">Analyser</string>
+    <string name="point_your_camera_at_a_barcode">Pointez votre camera vers un code</string>
+    <string name="copy">Copier</string>
+    <string name="share">Partager</string>
+    <string name="format_type">TYPE DE FORMAT</string>
+    <string name="browse">Naviguer</string>
+    <string name="connect">Connecter</string>
+    <string name="add_contact">Ajouter contact</string>
+    <string name="add_event">Ajouter évènement</string>
+    <string name="send_email">Envoyer email</string>
+    <string name="navigate">Naviguer</string>
+    <string name="dial">Composer</string>
+    <string name="sms">SMS</string>
+    <string name="web_search">Recherche internet</string>
+    <string name="clipboard_copied">Copié dans le presse-papier!</string>
+    <string name="cant_connect_wifi">Impossible de se connecter au WiFi avec Android 10+</string>
+    <string name="no_app">Pas d\'application pour ça</string>
+    <string name="history_no_result">Historique vide</string>
+    <string name="history">Historique</string>
+    <string name="options">Options</string>
+    <string name="about">À propos</string>
+    <string name="erase_history">Effacer l\'historique</string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+    <string name="messages_header">Messages</string>
+    <string name="title_activity_settings">Paramètres</string>
+    <string name="general">Général</string>
+    <string name="history_pref_title">Garder l\'historique des codes</string>
+    <string name="msg_erase_history">Supprimer l\'historique?</string>
+</resources>
